@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>유리수 계산기</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8;
+        }
+        .fraction {
+            display: inline-block;
+            vertical-align: middle;
+            text-align: center;
+        }
+        .fraction > span {
+            display: block;
+        }
+        .fraction .numerator {
+            border-bottom: 1px solid #000;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen p-4">
+
+    <div class="bg-white p-8 md:p-12 rounded-3xl shadow-2xl w-full max-w-2xl text-center">
+        <h1 class="text-3xl md:text-4xl font-bold text-gray-800 mb-6">유리수 계산 문제 생성기</h1>
+        <p class="text-gray-600 mb-8">새 문제 생성 버튼을 눌러 문제를 풀어보세요!</p>
+
+        <div id="questions-container" class="space-y-8">
+            <!-- 여기에 문제가 동적으로 생성됩니다 -->
+        </div>
+
+        <div class="mt-10">
+            <button id="generate-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-8 rounded-full shadow-lg transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-blue-300">
+                새 문제 생성
+            </button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const generateBtn = document.getElementById('generate-btn');
+            const questionsContainer = document.getElementById('questions-container');
+
+            function gcd(a, b) {
+                return b === 0 ? a : gcd(b, a % b);
+            }
+
+            function simplifyFraction(numerator, denominator) {
+                if (numerator === 0) {
+                    return { num: 0, den: 1 };
+                }
+                const commonDivisor = gcd(Math.abs(numerator), Math.abs(denominator));
+                const sign = (numerator * denominator >= 0) ? 1 : -1;
+                return {
+                    num: sign * Math.abs(numerator) / commonDivisor,
+                    den: Math.abs(denominator) / commonDivisor
+                };
+            }
+
+            function calculate(num1, den1, num2, den2, operator) {
+                let resultNum, resultDen;
+                switch (operator) {
+                    case '+':
+                        resultNum = num1 * den2 + num2 * den1;
+                        resultDen = den1 * den2;
+                        break;
+                    case '-':
+                        resultNum = num1 * den2 - num2 * den1;
+                        resultDen = den1 * den2;
+                        break;
+                    case '*':
+                        resultNum = num1 * num2;
+                        resultDen = den1 * den2;
+                        break;
+                    case '÷':
+                        resultNum = num1 * den2;
+                        resultDen = den1 * num2;
+                        break;
+                }
+                return simplifyFraction(resultNum, resultDen);
+            }
+
+            function generateFraction() {
+                const numerator = Math.floor(Math.random() * 10) + 1;
+                const denominator = Math.floor(Math.random() * 10) + 1;
+                return { num: numerator, den: denominator };
+            }
+
+            function generateQuestion(questionId) {
+                const fraction1 = generateFraction();
+                const fraction2 = generateFraction();
+                const operators = ['+', '-', '*', '÷'];
+                const operator = operators[Math.floor(Math.random() * operators.length)];
+
+                const answer = calculate(fraction1.num, fraction1.den, fraction2.num, fraction2.den, operator);
+
+                const questionDiv = document.createElement('div');
+                questionDiv.className = 'bg-gray-50 p-6 rounded-2xl shadow-inner transition-colors duration-300 ease-in-out';
+                questionDiv.innerHTML = `
+                    <div class="flex flex-col md:flex-row items-center justify-center space-x-0 md:space-x-4 space-y-4 md:space-y-0 text-xl md:text-2xl font-medium">
+                        <div class="fraction">
+                            <span class="numerator">${fraction1.num}</span>
+                            <span class="denominator">${fraction1.den}</span>
+                        </div>
+                        <span>${operator}</span>
+                        <div class="fraction">
+                            <span class="numerator">${fraction2.num}</span>
+                            <span class="denominator">${fraction2.den}</span>
+                        </div>
+                        <span>=</span>
+                        <div class="flex items-center space-x-2">
+                            <input type="text" id="answer-num-${questionId}" placeholder="분자" class="w-24 text-center border-b-2 border-gray-400 focus:border-blue-500 outline-none transition-colors duration-200 p-1 rounded-md">
+                            <span class="text-gray-400">/</span>
+                            <input type="text" id="answer-den-${questionId}" placeholder="분모" class="w-24 text-center border-b-2 border-gray-400 focus:border-blue-500 outline-none transition-colors duration-200 p-1 rounded-md">
+                        </div>
+                    </div>
+                    <div id="result-${questionId}" class="mt-4 text-lg font-bold"></div>
+                `;
+
+                const answerNumInput = questionDiv.querySelector(`#answer-num-${questionId}`);
+                const answerDenInput = questionDiv.querySelector(`#answer-den-${questionId}`);
+                const resultDiv = questionDiv.querySelector(`#result-${questionId}`);
+
+                const checkAnswer = () => {
+                    const userNum = parseInt(answerNumInput.value);
+                    const userDen = parseInt(answerDenInput.value);
+                    
+                    if (!isNaN(userNum) && !isNaN(userDen) && userDen !== 0) {
+                        const userSimplified = simplifyFraction(userNum, userDen);
+                        const isCorrect = userSimplified.num === answer.num && userSimplified.den === answer.den;
+                        if (isCorrect) {
+                            resultDiv.textContent = '✅ 정답입니다!';
+                            resultDiv.className = 'mt-4 text-lg font-bold text-green-600';
+                        } else {
+                            resultDiv.textContent = '❌ 다시 시도해 보세요.';
+                            resultDiv.className = 'mt-4 text-lg font-bold text-red-600';
+                        }
+                    } else if (answerNumInput.value === '' && answerDenInput.value === '') {
+                        resultDiv.textContent = '';
+                    }
+                };
+
+                answerNumInput.addEventListener('input', checkAnswer);
+                answerDenInput.addEventListener('input', checkAnswer);
+
+                return questionDiv;
+            }
+
+            function generateProblems() {
+                questionsContainer.innerHTML = '';
+                questionsContainer.appendChild(generateQuestion(1));
+                questionsContainer.appendChild(generateQuestion(2));
+            }
+
+            generateProblems();
+            generateBtn.addEventListener('click', generateProblems);
+        });
+    </script>
+
+</body>
+</html>
