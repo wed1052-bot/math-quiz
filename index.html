@@ -2,105 +2,124 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>유리수 혼합계산 마스터</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>유리수 혼합계산 챌린지</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@800&display=swap');
-        body { font-family: 'Nanum Gothic', sans-serif; background: #f8fafc; }
-        .math-v { font-size: 3rem; font-weight: 800; display: flex; align-items: center; justify-content: center; gap: 8px; }
-        .frac { display: inline-flex; flex-direction: column; align-items: center; vertical-align: middle; margin: 0 4px; }
-        .num { border-bottom: 3px solid #1e293b; padding: 0 4px; line-height: 1; }
-        .den { padding: 0 4px; line-height: 1; }
-        .sup { font-size: 1.5rem; vertical-align: super; color: #ef4444; }
+        /* 외부 라이브러리 없이 표준 CSS만 사용 */
+        body { font-family: sans-serif; background-color: #f0f4f8; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        .container { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 100%; max-width: 500px; text-align: center; border-top: 10px solid #2563eb; }
+        .header { display: flex; justify-content: space-between; margin-bottom: 20px; font-weight: bold; color: #475569; }
+        .problem-box { background: #f8fafc; border: 2px dashed #cbd5e1; border-radius: 15px; padding: 40px 20px; margin-bottom: 30px; min-height: 150px; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; font-weight: bold; flex-wrap: wrap; }
+        
+        /* 분수 디자인 */
+        .frac { display: inline-flex; flex-direction: column; vertical-align: middle; align-items: center; margin: 0 5px; font-size: 0.8em; }
+        .num { border-bottom: 2px solid black; padding: 0 5px; }
+        .den { padding: 0 5px; }
+        .op { margin: 0 10px; color: #dc2626; }
+        .sup { font-size: 0.6em; vertical-align: super; color: #2563eb; }
+
+        /* 입력창 디자인 */
+        .input-group { background: #eff6ff; padding: 20px; border-radius: 15px; display: flex; align-items: center; justify-content: center; gap: 20px; }
+        .fraction-input { display: flex; flex-direction: column; align-items: center; }
+        input { width: 80px; text-align: center; font-size: 1.5rem; padding: 10px; border: 2px solid #bfdbfe; border-radius: 10px; outline: none; }
+        input:focus { border-color: #2563eb; }
+        .line { width: 100%; height: 2px; background: #1e293b; margin: 8px 0; }
+        button { background: #2563eb; color: white; border: none; padding: 20px 40px; font-size: 1.5rem; font-weight: bold; border-radius: 15px; cursor: pointer; transition: 0.2s; }
+        button:active { transform: scale(0.95); }
+        
+        /* 결과 화면 */
+        .hidden { display: none; }
+        .result-card { background: #2563eb; color: white; padding: 40px; border-radius: 30px; margin-bottom: 20px; }
+        .score-big { font-size: 8rem; margin: 20px 0; font-weight: 900; }
     </style>
 </head>
-<body class="flex items-center justify-center min-h-screen p-4">
+<body>
 
-    <div class="bg-white p-10 rounded-[50px] shadow-2xl w-full max-w-3xl border-t-[12px] border-blue-600">
+    <div class="container">
         <div id="quiz-ui">
-            <div class="flex justify-between mb-8">
-                <span id="step-info" class="text-blue-600 font-bold text-xl">문제 1 / 10</span>
-                <span id="score-info" class="text-green-600 font-bold text-xl">정답: 0</span>
+            <div class="header">
+                <span id="step-txt">문제 1 / 10</span>
+                <span id="score-txt">맞은 개수: 0</span>
             </div>
-
-            <div class="bg-slate-50 rounded-[40px] p-12 text-center mb-10 min-h-[280px] flex items-center justify-center border-2 border-slate-100 shadow-inner">
-                <div id="display-area" class="math-v">
-                    </div>
+            <div class="problem-box" id="problem-display">
+                로딩 중...
             </div>
-
-            <div class="bg-blue-50 p-8 rounded-[40px] flex flex-col md:flex-row items-center justify-center gap-10">
-                <div class="text-center">
-                    <p class="text-blue-900 font-black mb-4">정답 (기약분수)</p>
-                    <div class="bg-white p-6 rounded-3xl shadow-md inline-flex flex-col items-center">
-                        <input type="number" id="ans-n" placeholder="분자" class="w-28 text-center text-3xl p-2 outline-none border-b-2 border-blue-200 focus:border-blue-500">
-                        <div class="w-32 h-1 bg-slate-800 my-4"></div>
-                        <input type="number" id="ans-d" placeholder="분모" class="w-28 text-center text-3xl p-2 outline-none border-t-2 border-blue-200 focus:border-blue-500">
-                    </div>
+            <div class="input-group">
+                <div class="fraction-input">
+                    <input type="number" id="in-n" placeholder="분자">
+                    <div class="line"></div>
+                    <input type="number" id="in-d" placeholder="분모">
                 </div>
-                <button id="btn-next" class="bg-blue-600 hover:bg-blue-700 text-white text-5xl px-14 py-12 rounded-[40px] font-black shadow-xl active:scale-95 transition-transform">확인</button>
+                <button onclick="checkAnswer()">확인</button>
             </div>
         </div>
 
-        <div id="result-ui" class="hidden text-center py-6">
-            <h2 class="text-6xl font-black text-blue-600 mb-6">학습 완료! 🎉</h2>
-            <div class="bg-blue-600 text-white p-12 rounded-[50px] shadow-2xl mb-8">
-                <p class="text-2xl mb-2 italic">최종 점수</p>
-                <p class="text-[10rem] font-black leading-none mb-6" id="final-score">0</p>
-                <input type="text" id="user-name" placeholder="학생 이름을 입력하세요" class="w-full text-center text-3xl p-5 rounded-2xl text-blue-900 font-bold outline-none">
+        <div id="result-ui" class="hidden">
+            <h1>학습 완료! 🎉</h1>
+            <div class="result-card">
+                <div id="final-score" class="score-big">0</div>
+                <input type="text" id="user-name" placeholder="이름을 입력하세요" style="width:80%; font-size:1.2rem;">
             </div>
-            <button onclick="window.print()" class="w-full bg-emerald-500 text-white text-3xl py-7 rounded-3xl font-black shadow-lg mb-4">리포트 저장 및 인쇄</button>
-            <button onclick="location.reload()" class="text-slate-400 font-bold underline">다시 시작하기</button>
+            <button onclick="window.print()" style="background:#059669; width:100%;">리포트 저장/인쇄</button>
+            <p onclick="location.reload()" style="margin-top:20px; color:#64748b; cursor:pointer; text-decoration:underline;">다시 풀기</p>
         </div>
     </div>
 
     <script>
-        // 학습지 7, 8, 9, 10번 고난도 유형 완벽 복제 데이터
-        const problemPool = [
-            { q: `(-2) × <div class="frac"><div class="num">3</div><div class="den">4</div></div> ÷ <div class="frac"><div class="num">1</div><div class="den">2</div></div>`, n: -3, d: 1 },
-            { q: `14 × { <div class="frac"><div class="num">-3</div><div class="den">2</div></div> + <div class="frac"><div class="num">2</div><div class="den">7</div></div> }`, n: -17, d: 1 },
-            { q: `9 - { 5 + (-2)<span class="sup">3</span> } × (-7)`, n: -12, d: 1 },
-            { q: `(-2)<span class="sup">3</span> × <div class="frac"><div class="num">5</div><div class="den">8</div></div> ÷ <div class="frac"><div class="num">-5</div><div class="den">6</div></div>`, n: 6, d: 1 },
-            { q: `(-3)<span class="sup">2</span> - { 10 + (-2) × 3 }`, n: 5, d: 1 },
-            { q: `<div class="frac"><div class="num">3</div><div class="den">4</div></div> ÷ <div class="frac"><div class="num">-9</div><div class="den">8</div></div> + 1`, n: 1, d: 3 },
-            { q: `(-1)<span class="sup">100</span> + (-1)<span class="sup">101</span> × 5`, n: -4, d: 1 },
-            { q: `{ 1 - <div class="frac"><div class="num">2</div><div class="den">3</div></div> } ÷ <div class="frac"><div class="num">5</div><div class="den">6</div></div>`, n: 2, d: 5 },
-            { q: `(-5) × <div class="frac"><div class="num">1</div><div class="den">10</div></div> - (-2)`, n: 3, d: 2 },
-            { q: `8 × <div class="frac"><div class="num">-3</div><div class="den">4</div></div> ÷ (-6)`, n: 1, d: 1 }
+        // 고난도 문제 데이터 세트 (학습지 7~10번 유형)
+        const problems = [
+            { h: `(-2) <span class="op">×</span> <div class="frac"><div class="num">3</div><div class="den">4</div></div> <span class="op">÷</span> <div class="frac"><div class="num">1</div><div class="den">2</div></div>`, n: -3, d: 1 },
+            { h: `14 <span class="op">×</span> { <div class="frac"><div class="num">-3</div><div class="den">2</div></div> <span class="op">+</span> <div class="frac"><div class="num">2</div><div class="den">7</div></div> }`, n: -17, d: 1 },
+            { h: `9 <span class="op">-</span> { 5 <span class="op">+</span> (-2)<span class="sup">3</span> } <span class="op">×</span> (-7)`, n: -12, d: 1 },
+            { h: `(-2)<span class="sup">3</span> <span class="op">×</span> <div class="frac"><div class="num">5</div><div class="den">8</div></div> <span class="op">÷</span> <div class="frac"><div class="num">-5</div><div class="den">6</div></div>`, n: 6, d: 1 },
+            { h: `(-3)<span class="sup">2</span> <span class="op">-</span> { 10 <span class="op">+</span> (-2) <span class="op">×</span> 3 }`, n: 5, d: 1 },
+            { h: `(-1)<span class="sup">100</span> <span class="op">+</span> (-1)<span class="sup">101</span> <span class="op">×</span> 5`, n: -4, d: 1 },
+            { h: `{ 1 <span class="op">-</span> <div class="frac"><div class="num">2</div><div class="den">3</div></div> } <span class="op">÷</span> <div class="frac"><div class="num">5</div><div class="den">6</div></div>`, n: 2, d: 5 },
+            { h: `(-5) <span class="op">×</span> <div class="frac"><div class="num">1</div><div class="den">10</div></div> <span class="op">-</span> (-2)`, n: 3, d: 2 },
+            { h: `8 <span class="op">×</span> <div class="frac"><div class="num">-3</div><div class="den">4</div></div> <span class="op">÷</span> (-6)`, n: 1, d: 1 },
+            { h: `(-4) <span class="op">+</span> (+7) <span class="op">-</span> (+10)`, n: -7, d: 1 }
         ];
 
-        let idx = 1; let score = 0; let cur;
+        let currentIdx = 1;
+        let score = 0;
+        let currentProb;
 
-        function load() {
-            // 문제를 무작위로 섞어서 출제
-            cur = problemPool[Math.floor(Math.random() * problemPool.length)];
-            document.getElementById('display-area').innerHTML = cur.q + ` <span class="text-blue-500 ml-4">=</span>`;
+        function showProblem() {
+            currentProb = problems[Math.floor(Math.random() * problems.length)];
+            document.getElementById('problem-display').innerHTML = currentProb.h + " = ";
         }
 
-        document.getElementById('btn-next').onclick = () => {
-            const un = parseInt(document.getElementById('ans-n').value);
-            const ud = parseInt(document.getElementById('ans-d').value);
-            if(isNaN(un) || isNaN(ud)) return;
+        function checkAnswer() {
+            const un = parseInt(document.getElementById('in-n').value);
+            const ud = parseInt(document.getElementById('in-d').value);
 
-            if(un === cur.n && ud === cur.d) {
-                score++; alert("정답입니다! 😊");
-            } else {
-                alert(`오답입니다. 정답은 ${cur.n}${cur.d === 1 ? '' : '/' + cur.d} 입니다.`);
+            if (isNaN(un) || isNaN(ud)) {
+                alert("분자와 분모를 모두 입력해 주세요!");
+                return;
             }
 
-            if(idx < 10) {
-                idx++;
-                document.getElementById('step-info').innerText = `문제 ${idx} / 10`;
-                document.getElementById('score-info').innerText = `정답: ${score}`;
-                document.getElementById('ans-n').value = ""; document.getElementById('ans-d').value = "";
-                load();
+            if (un === currentProb.n && ud === currentProb.d) {
+                score++;
+                alert("정답입니다! 😊");
+            } else {
+                alert("아쉬워요! 정답은 " + currentProb.n + (currentProb.d === 1 ? "" : "/" + currentProb.d) + " 입니다.");
+            }
+
+            if (currentIdx < 10) {
+                currentIdx++;
+                document.getElementById('step-txt').innerText = "문제 " + currentIdx + " / 10";
+                document.getElementById('score-txt').innerText = "맞은 개수: " + score;
+                document.getElementById('in-n').value = "";
+                document.getElementById('in-d').value = "";
+                showProblem();
             } else {
                 document.getElementById('quiz-ui').classList.add('hidden');
                 document.getElementById('result-ui').classList.remove('hidden');
                 document.getElementById('final-score').innerText = score;
             }
-        };
+        }
 
-        window.onload = load; // 페이지 로드 즉시 실행
+        // 시작
+        window.onload = showProblem;
     </script>
 </body>
 </html>
