@@ -3,164 +3,146 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>유리수 계산기</title>
+    <title>유리수 계산 챌린지</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap');
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f0f4f8;
-        }
-        .fraction {
-            display: inline-block;
-            vertical-align: middle;
-            text-align: center;
-        }
-        .fraction > span {
-            display: block;
-        }
-        .fraction .numerator {
-            border-bottom: 1px solid #000;
-        }
+        @import url('https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@400;700&display=swap');
+        body { font-family: 'Nanum Gothic', sans-serif; background-color: #f3f4f6; }
+        .fraction { display: inline-block; vertical-align: middle; text-align: center; margin: 0 5px; }
+        .fraction .numerator { border-bottom: 2px solid #374151; padding: 0 2px; }
+        .fraction .denominator { padding: 0 2px; }
     </style>
 </head>
-<body class="bg-gray-100 flex items-center justify-center min-h-screen p-4">
+<body class="flex items-center justify-center min-h-screen p-4">
 
-    <div class="bg-white p-8 md:p-12 rounded-3xl shadow-2xl w-full max-w-2xl text-center">
-        <h1 class="text-3xl md:text-4xl font-bold text-gray-800 mb-6">유리수 계산 문제 생성기</h1>
-        <p class="text-gray-600 mb-8">새 문제 생성 버튼을 눌러 문제를 풀어보세요!</p>
-
-        <div id="questions-container" class="space-y-8">
-            <!-- 여기에 문제가 동적으로 생성됩니다 -->
+    <div id="quiz-container" class="bg-white p-8 rounded-3xl shadow-xl w-full max-w-lg">
+        <div class="mb-6">
+            <div class="flex justify-between text-sm mb-2 text-gray-500">
+                <span id="progress-text">문제 1 / 10</span>
+                <span id="score-text">맞은 개수: 0</span>
+            </div>
+            <div class="w-full bg-gray-200 rounded-full h-2.5">
+                <div id="progress-bar" class="bg-blue-600 h-2.5 rounded-full" style="width: 10%"></div>
+            </div>
         </div>
 
-        <div class="mt-10">
-            <button id="generate-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-8 rounded-full shadow-lg transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-blue-300">
-                새 문제 생성
-            </button>
+        <div id="question-area" class="text-center py-10">
+            <div id="math-expr" class="text-3xl font-bold mb-8 flex items-center justify-center">
+                </div>
+            <div class="flex flex-col items-center gap-4">
+                <div class="flex items-center gap-2 text-2xl font-bold">
+                    <span>=</span>
+                    <input type="number" id="ans-num" placeholder="분자" class="w-20 text-center border-b-4 border-blue-500 outline-none p-2">
+                    <span class="text-gray-400">/</span>
+                    <input type="number" id="ans-den" placeholder="분모" class="w-20 text-center border-b-4 border-blue-500 outline-none p-2">
+                </div>
+                <button id="next-btn" class="mt-6 w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-xl shadow-lg transition text-xl">
+                    정답 확인 및 다음 문제
+                </button>
+            </div>
+        </div>
+
+        <div id="result-screen" class="hidden text-center py-6">
+            <h2 class="text-4xl font-extrabold text-blue-600 mb-4">학습 완료! 🎉</h2>
+            <div class="bg-blue-50 p-6 rounded-2xl mb-6">
+                <p class="text-xl mb-2">최종 점수: <span id="final-score" class="font-bold text-2xl">0</span> / 10</p>
+                <p class="text-lg text-gray-600">성취도: <span id="grade">A</span></p>
+            </div>
+            
+            <div class="space-y-4">
+                <input type="text" id="student-name" placeholder="이름을 입력하세요" class="w-full p-4 border-2 border-gray-200 rounded-xl outline-none focus:border-blue-500">
+                <button onclick="submitScore()" class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-4 rounded-xl shadow-lg transition">
+                    선생님께 결과 제출하기
+                </button>
+                <button onclick="location.reload()" class="w-full text-gray-400 font-medium py-2">다시 시작하기</button>
+            </div>
         </div>
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const generateBtn = document.getElementById('generate-btn');
-            const questionsContainer = document.getElementById('questions-container');
+        let currentIdx = 1;
+        let totalQuestions = 10;
+        let correctCount = 0;
+        let currentAnswer = {};
 
-            function gcd(a, b) {
-                return b === 0 ? a : gcd(b, a % b);
+        function gcd(a, b) { return b === 0 ? a : gcd(b, a % b); }
+
+        function simplify(n, d) {
+            const common = gcd(Math.abs(n), Math.abs(d));
+            const sign = (n * d >= 0) ? 1 : -1;
+            return { num: sign * Math.abs(n) / common, den: Math.abs(d) / common };
+        }
+
+        function generateQuestion() {
+            const n1 = Math.floor(Math.random() * 9) + 1;
+            const d1 = Math.floor(Math.random() * 9) + 2;
+            const n2 = Math.floor(Math.random() * 9) + 1;
+            const d2 = Math.floor(Math.random() * 9) + 2;
+            const ops = ['+', '-', '*'];
+            const op = ops[Math.floor(Math.random() * ops.length)];
+
+            let res;
+            if(op === '+') res = simplify(n1*d2 + n2*d1, d1*d2);
+            else if(op === '-') res = simplify(n1*d2 - n2*d1, d1*d2);
+            else res = simplify(n1*n2, d1*d2);
+
+            currentAnswer = res;
+
+            document.getElementById('math-expr').innerHTML = `
+                <div class="fraction"><span class="numerator">${n1}</span><span class="denominator">${d1}</span></div>
+                <span class="mx-2">${op}</span>
+                <div class="fraction"><span class="numerator">${n2}</span><span class="denominator">${d2}</span></div>
+            `;
+        }
+
+        document.getElementById('next-btn').addEventListener('click', () => {
+            const uNum = parseInt(document.getElementById('ans-num').value);
+            const uDen = parseInt(document.getElementById('ans-den').value);
+
+            if(isNaN(uNum) || isNaN(uDen)) { alert("분자와 분모를 모두 입력해주세요!"); return; }
+
+            const userRes = simplify(uNum, uDen);
+            if(userRes.num === currentAnswer.num && userRes.den === currentAnswer.den) {
+                correctCount++;
+                alert("정답입니다! 😊");
+            } else {
+                alert(`아쉬워요! 정답은 ${currentAnswer.num}/${currentAnswer.den} 입니다.`);
             }
 
-            function simplifyFraction(numerator, denominator) {
-                if (numerator === 0) {
-                    return { num: 0, den: 1 };
-                }
-                const commonDivisor = gcd(Math.abs(numerator), Math.abs(denominator));
-                const sign = (numerator * denominator >= 0) ? 1 : -1;
-                return {
-                    num: sign * Math.abs(numerator) / commonDivisor,
-                    den: Math.abs(denominator) / commonDivisor
-                };
+            if(currentIdx < totalQuestions) {
+                currentIdx++;
+                updateUI();
+                generateQuestion();
+                document.getElementById('ans-num').value = '';
+                document.getElementById('ans-den').value = '';
+            } else {
+                showResult();
             }
-
-            function calculate(num1, den1, num2, den2, operator) {
-                let resultNum, resultDen;
-                switch (operator) {
-                    case '+':
-                        resultNum = num1 * den2 + num2 * den1;
-                        resultDen = den1 * den2;
-                        break;
-                    case '-':
-                        resultNum = num1 * den2 - num2 * den1;
-                        resultDen = den1 * den2;
-                        break;
-                    case '*':
-                        resultNum = num1 * num2;
-                        resultDen = den1 * den2;
-                        break;
-                    case '÷':
-                        resultNum = num1 * den2;
-                        resultDen = den1 * num2;
-                        break;
-                }
-                return simplifyFraction(resultNum, resultDen);
-            }
-
-            function generateFraction() {
-                const numerator = Math.floor(Math.random() * 10) + 1;
-                const denominator = Math.floor(Math.random() * 10) + 1;
-                return { num: numerator, den: denominator };
-            }
-
-            function generateQuestion(questionId) {
-                const fraction1 = generateFraction();
-                const fraction2 = generateFraction();
-                const operators = ['+', '-', '*', '÷'];
-                const operator = operators[Math.floor(Math.random() * operators.length)];
-
-                const answer = calculate(fraction1.num, fraction1.den, fraction2.num, fraction2.den, operator);
-
-                const questionDiv = document.createElement('div');
-                questionDiv.className = 'bg-gray-50 p-6 rounded-2xl shadow-inner transition-colors duration-300 ease-in-out';
-                questionDiv.innerHTML = `
-                    <div class="flex flex-col md:flex-row items-center justify-center space-x-0 md:space-x-4 space-y-4 md:space-y-0 text-xl md:text-2xl font-medium">
-                        <div class="fraction">
-                            <span class="numerator">${fraction1.num}</span>
-                            <span class="denominator">${fraction1.den}</span>
-                        </div>
-                        <span>${operator}</span>
-                        <div class="fraction">
-                            <span class="numerator">${fraction2.num}</span>
-                            <span class="denominator">${fraction2.den}</span>
-                        </div>
-                        <span>=</span>
-                        <div class="flex items-center space-x-2">
-                            <input type="text" id="answer-num-${questionId}" placeholder="분자" class="w-24 text-center border-b-2 border-gray-400 focus:border-blue-500 outline-none transition-colors duration-200 p-1 rounded-md">
-                            <span class="text-gray-400">/</span>
-                            <input type="text" id="answer-den-${questionId}" placeholder="분모" class="w-24 text-center border-b-2 border-gray-400 focus:border-blue-500 outline-none transition-colors duration-200 p-1 rounded-md">
-                        </div>
-                    </div>
-                    <div id="result-${questionId}" class="mt-4 text-lg font-bold"></div>
-                `;
-
-                const answerNumInput = questionDiv.querySelector(`#answer-num-${questionId}`);
-                const answerDenInput = questionDiv.querySelector(`#answer-den-${questionId}`);
-                const resultDiv = questionDiv.querySelector(`#result-${questionId}`);
-
-                const checkAnswer = () => {
-                    const userNum = parseInt(answerNumInput.value);
-                    const userDen = parseInt(answerDenInput.value);
-                    
-                    if (!isNaN(userNum) && !isNaN(userDen) && userDen !== 0) {
-                        const userSimplified = simplifyFraction(userNum, userDen);
-                        const isCorrect = userSimplified.num === answer.num && userSimplified.den === answer.den;
-                        if (isCorrect) {
-                            resultDiv.textContent = '✅ 정답입니다!';
-                            resultDiv.className = 'mt-4 text-lg font-bold text-green-600';
-                        } else {
-                            resultDiv.textContent = '❌ 다시 시도해 보세요.';
-                            resultDiv.className = 'mt-4 text-lg font-bold text-red-600';
-                        }
-                    } else if (answerNumInput.value === '' && answerDenInput.value === '') {
-                        resultDiv.textContent = '';
-                    }
-                };
-
-                answerNumInput.addEventListener('input', checkAnswer);
-                answerDenInput.addEventListener('input', checkAnswer);
-
-                return questionDiv;
-            }
-
-            function generateProblems() {
-                questionsContainer.innerHTML = '';
-                questionsContainer.appendChild(generateQuestion(1));
-                questionsContainer.appendChild(generateQuestion(2));
-            }
-
-            generateProblems();
-            generateBtn.addEventListener('click', generateProblems);
         });
-    </script>
 
+        function updateUI() {
+            document.getElementById('progress-text').innerText = `문제 ${currentIdx} / ${totalQuestions}`;
+            document.getElementById('score-text').innerText = `맞은 개수: ${correctCount}`;
+            document.getElementById('progress-bar').style.width = `${(currentIdx / totalQuestions) * 100}%`;
+        }
+
+        function showResult() {
+            document.getElementById('question-area').classList.add('hidden');
+            document.getElementById('result-screen').classList.remove('hidden');
+            document.getElementById('final-score').innerText = correctCount;
+            let grade = 'C';
+            if(correctCount >= 9) grade = 'A+';
+            else if(correctCount >= 7) grade = 'B';
+            document.getElementById('grade').innerText = grade;
+        }
+
+        function submitScore() {
+            const name = document.getElementById('student-name').value;
+            if(!name) { alert("이름을 입력해주세요!"); return; }
+            alert(`${name} 학생의 기록(${correctCount}점)이 제출되었습니다!\n(실제 연동을 위해서는 구글 폼 설정이 필요합니다)`);
+        }
+
+        generateQuestion();
+    </script>
 </body>
 </html>
