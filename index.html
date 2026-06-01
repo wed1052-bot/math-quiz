@@ -3,117 +3,75 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>유리수 사칙연산 마스터</title>
+    <title>유리수 계산 챌린지</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Jua&display=swap');
-        body { font-family: 'Jua', sans-serif; background-color: #f8fafc; }
-        /* 분수를 명확한 박스 안에 가둡니다 */
-        .frac-container {
-            display: inline-flex; flex-direction: column; align-items: center;
-            background: #ffffff; border: 4px solid #3b82f6; padding: 10px;
-            border-radius: 15px; min-width: 70px; margin: 0 10px;
-        }
-        .num-part { font-size: 2.5rem; color: #1e40af; border-bottom: 4px solid #3b82f6; width: 100%; text-align: center; }
-        .den-part { font-size: 2.5rem; color: #1e40af; width: 100%; text-align: center; }
-        .int-part { font-size: 3.5rem; color: #1e40af; margin: 0 15px; }
-        .op-part { font-size: 3rem; color: #ef4444; margin: 0 15px; font-weight: bold; }
+        @import url('https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@700&display=swap');
+        body { font-family: 'Nanum Gothic', sans-serif; background-color: #f0f4f8; }
+        /* 절대 깨지지 않는 분수 디자인 */
+        .fraction { display: inline-flex; flex-direction: column; vertical-align: middle; align-items: center; margin: 0 10px; }
+        .num { border-bottom: 3px solid #333; padding: 0 10px; font-size: 2.5rem; line-height: 1.2; }
+        .den { padding: 0 10px; font-size: 2.5rem; line-height: 1.2; }
+        .op { font-size: 3rem; margin: 0 15px; font-weight: bold; }
+        .integer { font-size: 3rem; font-weight: bold; }
     </style>
 </head>
 <body class="flex items-center justify-center min-h-screen p-4">
 
-    <div class="bg-white p-8 rounded-[40px] shadow-2xl w-full max-w-2xl border-t-8 border-blue-500">
-        <div class="flex justify-between items-center mb-6">
-            <span id="prog-text" class="text-blue-600 text-xl font-bold">문제 1 / 10</span>
-            <span id="score-text" class="text-green-600 text-xl font-bold">정답: 0</span>
+    <div class="bg-white p-8 rounded-3xl shadow-2xl w-full max-w-2xl border-t-8 border-blue-600">
+        <div class="flex justify-between items-center mb-6 text-xl font-bold">
+            <span class="text-blue-600" id="q-count">문제 1 / 10</span>
+            <span class="text-green-600" id="s-count">맞은 개수: 0</span>
         </div>
 
-        <div id="quiz-area" class="text-center">
-            <div id="math-display" class="flex items-center justify-center mb-12 flex-wrap gap-y-4 bg-slate-50 p-10 rounded-3xl border-2 border-dashed border-slate-200">
+        <div id="quiz-page" class="text-center">
+            <div id="display" class="flex items-center justify-center min-h-[180px] bg-gray-50 rounded-2xl mb-10 p-6 border-2 border-gray-100">
                 </div>
 
-            <div class="bg-blue-50 p-8 rounded-3xl border-2 border-blue-100">
-                <p class="text-blue-800 text-lg mb-4 font-bold">정답을 입력하세요 (음수는 분자에 - 표시)</p>
-                <div class="flex items-center justify-center gap-6">
+            <div class="bg-blue-50 p-6 rounded-2xl border-2 border-blue-100">
+                <p class="mb-4 text-blue-800 font-bold">정답을 분수로 입력 (정수는 분모에 1 입력)</p>
+                <div class="flex items-center justify-center gap-4">
                     <div class="flex flex-col gap-2">
-                        <input type="number" id="u-num" placeholder="분자" class="w-32 text-center text-3xl p-3 rounded-2xl border-4 border-blue-300 outline-none focus:border-blue-500">
-                        <div class="h-1 bg-slate-300 rounded-full"></div>
-                        <input type="number" id="u-den" placeholder="분모" class="w-32 text-center text-3xl p-3 rounded-2xl border-4 border-blue-300 outline-none focus:border-blue-500">
+                        <input type="number" id="ans-n" placeholder="분자" class="w-28 text-center text-2xl p-3 border-2 border-blue-400 rounded-lg outline-none">
+                        <div class="h-1 bg-gray-400 rounded-full"></div>
+                        <input type="number" id="ans-d" placeholder="분모" class="w-28 text-center text-2xl p-3 border-2 border-blue-400 rounded-lg outline-none">
                     </div>
-                    <button id="submit-btn" class="bg-blue-600 hover:bg-blue-700 text-white text-2xl px-10 py-12 rounded-3xl shadow-xl transition-all active:scale-95 font-bold">확인</button>
+                    <button id="next-btn" class="bg-blue-600 hover:bg-blue-700 text-white text-2xl px-10 py-10 rounded-2xl shadow-lg font-bold">확인</button>
                 </div>
-                <p class="text-sm text-slate-400 mt-4">※ 정수는 분모에 1을 입력하세요 (예: 5 → 5/1)</p>
             </div>
         </div>
 
-        <div id="result-area" class="hidden text-center py-10">
-            <h2 class="text-5xl font-black text-blue-600 mb-8">학습 완료! 🎉</h2>
-            <div class="bg-slate-50 rounded-3xl p-10 mb-8 border-2 border-slate-100">
-                <p class="text-3xl text-slate-600 mb-2 font-bold">최종 점수</p>
-                <p class="text-7xl font-black text-blue-700"><span id="final-score">0</span> / 10</p>
+        <div id="result-page" class="hidden text-center py-10">
+            <h2 class="text-5xl font-bold text-blue-700 mb-6">학습 완료!</h2>
+            <div class="bg-blue-50 p-10 rounded-3xl mb-8">
+                <p class="text-2xl text-gray-600 mb-2">당신의 점수는?</p>
+                <p class="text-7xl font-black text-blue-600"><span id="final-score">0</span> / 10</p>
             </div>
-            <input type="text" id="stu-name" placeholder="학생 이름을 입력하세요" class="w-full text-center text-2xl p-5 rounded-2xl border-4 border-slate-200 mb-4 outline-none focus:border-blue-500">
-            <button onclick="alert('제출되었습니다! 화면을 캡처해 선생님께 보내주세요.')" class="w-full bg-green-500 hover:bg-green-600 text-white text-3xl py-6 rounded-2xl shadow-lg font-bold">기록 제출하기</button>
+            <input type="text" id="name" placeholder="이름을 입력하세요" class="w-full text-center text-2xl p-4 border-2 border-gray-300 rounded-xl mb-4 outline-none">
+            <button onclick="alert('제출되었습니다!')" class="w-full bg-green-500 text-white text-3xl py-5 rounded-xl font-bold shadow-md">결과 제출</button>
         </div>
     </div>
 
     <script>
-        let step = 1; let score = 0; let ans = { n: 0, d: 1 };
+        let step = 1; let score = 0; let sol = { n: 0, d: 1 };
         function gcd(a, b) { return b === 0 ? a : gcd(b, a % b); }
 
-        function renderVal(n, d) {
-            if (d === 1) return `<div class="int-part">${n < 0 ? '('+n+')' : n}</div>`;
-            return `<div class="frac-container"><div class="num-part">${n}</div><div class="den-part">${d}</div></div>`;
-        }
-
-        function nextQuiz() {
-            let n1 = (Math.floor(Math.random() * 19) - 9) || 1;
-            let d1 = Math.random() > 0.5 ? 1 : (Math.floor(Math.random() * 8) + 2);
-            let n2 = (Math.floor(Math.random() * 19) - 9) || 1;
-            let d2 = Math.random() > 0.5 ? 1 : (Math.floor(Math.random() * 8) + 2);
-            const ops = ['+', '-', '×', '÷'];
-            const op = ops[Math.floor(Math.random() * 4)];
+        function make() {
+            let n1 = (Math.floor(Math.random() * 15) - 7) || 1;
+            let d1 = Math.random() > 0.5 ? 1 : Math.floor(Math.random() * 8) + 2;
+            let n2 = (Math.floor(Math.random() * 15) - 7) || 1;
+            let d2 = Math.random() > 0.5 ? 1 : Math.floor(Math.random() * 8) + 2;
+            const ops = ['+', '-', '×', '÷']; const op = ops[Math.floor(Math.random() * 4)];
 
             let rn, rd;
             if(op === '+') { rn = n1*d2 + n2*d1; rd = d1*d2; }
             else if(op === '-') { rn = n1*d2 - n2*d1; rd = d1*d2; }
             else if(op === '×') { rn = n1*n2; rd = d1*d2; }
-            else { rn = n1*d2; rd = d1*n2; if(rd===0) { nextQuiz(); return; } }
+            else { rn = n1*d2; rd = d1*n2; if(rd===0) { make(); return; } }
 
-            let common = gcd(Math.abs(rn), Math.abs(rd));
-            ans.n = rn / common; ans.d = rd / common;
-            if(ans.d < 0) { ans.n *= -1; ans.d *= -1; }
+            let c = gcd(Math.abs(rn), Math.abs(rd));
+            sol.n = rn/c; sol.d = rd/c;
+            if(sol.d < 0) { sol.n *= -1; sol.d *= -1; }
 
-            document.getElementById('math-display').innerHTML = `
-                ${renderVal(n1, d1)} <div class="op-part">${op}</div> ${renderVal(n2, d2)} <div class="op-part">=</div>
-            `;
-        }
-
-        document.getElementById('submit-btn').onclick = () => {
-            const un = parseInt(document.getElementById('u-num').value);
-            const ud = parseInt(document.getElementById('u-den').value);
-            if(isNaN(un) || isNaN(ud)) { alert("정답을 모두 채워주세요!"); return; }
-            
-            let common = gcd(Math.abs(un), Math.abs(ud));
-            let sun = un/common; let sud = ud/common;
-            if(sud < 0) { sun *= -1; sud *= -1; }
-
-            if(sun === ans.n && sud === ans.d) { score++; alert("정답입니다! 😊"); }
-            else { alert(`틀렸어요. 정답은 ${ans.n}/${ans.d} 입니다.`); }
-
-            if(step < 10) {
-                step++;
-                document.getElementById('prog-text').innerText = `문제 ${step} / 10`;
-                document.getElementById('score-text').innerText = `정답: ${score}`;
-                document.getElementById('u-num').value = ""; document.getElementById('u-den').value = "";
-                nextQuiz();
-            } else {
-                document.getElementById('quiz-area').classList.add('hidden');
-                document.getElementById('result-area').classList.remove('hidden');
-                document.getElementById('final-score').innerText = score;
-            }
-        };
-        nextQuiz();
-    </script>
-</body>
-</html>
+            const draw = (n, d) => d === 1 ? `<span class="integer">${n < 0 ? '('+n+')' : n}</span>` : `<div class="fraction"><div class="num">${n}</div><div class="den">${d}</div></div>`;
+            document.getElementById('display').innerHTML = `${
