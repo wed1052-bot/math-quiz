@@ -77,4 +77,30 @@
         }
 
         document.getElementById('btn-next').onclick = () => {
-            const un = parseInt(document.getElementById
+            const un = parseInt(document.getElementById('ans-n').value);
+            const ud = parseInt(document.getElementById('ans-d').value);
+            if(isNaN(un) || isNaN(ud)) return;
+
+            if(un === cur.n && ud === cur.d) {
+                score++; alert("정답입니다! 😊");
+            } else {
+                alert(`오답입니다. 정답은 ${cur.n}${cur.d === 1 ? '' : '/' + cur.d} 입니다.`);
+            }
+
+            if(idx < 10) {
+                idx++;
+                document.getElementById('step-info').innerText = `문제 ${idx} / 10`;
+                document.getElementById('score-info').innerText = `정답: ${score}`;
+                document.getElementById('ans-n').value = ""; document.getElementById('ans-d').value = "";
+                load();
+            } else {
+                document.getElementById('quiz-ui').classList.add('hidden');
+                document.getElementById('result-ui').classList.remove('hidden');
+                document.getElementById('final-score').innerText = score;
+            }
+        };
+
+        window.onload = load; // 페이지 로드 즉시 실행
+    </script>
+</body>
+</html>
