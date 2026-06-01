@@ -8,53 +8,75 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@400;700&display=swap');
         body { font-family: 'Nanum Gothic', sans-serif; background-color: #f3f4f6; }
-        .fraction { display: inline-block; vertical-align: middle; text-align: center; margin: 0 5px; }
-        .fraction .numerator { border-bottom: 2px solid #374151; padding: 0 2px; }
-        .fraction .denominator { padding: 0 2px; }
+        /* 분수 디자인 대폭 강화 */
+        .fraction-container {
+            display: inline-flex;
+            flex-direction: column;
+            vertical-align: middle;
+            align-items: center;
+            margin: 0 10px;
+            min-width: 50px;
+        }
+        .numerator {
+            border-bottom: 3px solid #1f2937; /* 분자 밑줄 두껍게 */
+            width: 100%;
+            text-align: center;
+            padding-bottom: 2px;
+            font-size: 1.2em;
+        }
+        .denominator {
+            width: 100%;
+            text-align: center;
+            padding-top: 2px;
+            font-size: 1.2em;
+        }
+        .operator { font-size: 1.5em; font-weight: bold; margin: 0 15px; }
     </style>
 </head>
 <body class="flex items-center justify-center min-h-screen p-4">
 
     <div id="quiz-container" class="bg-white p-8 rounded-3xl shadow-xl w-full max-w-lg">
         <div class="mb-6">
-            <div class="flex justify-between text-sm mb-2 text-gray-500">
+            <div class="flex justify-between text-sm mb-2 text-gray-500 font-bold">
                 <span id="progress-text">문제 1 / 10</span>
                 <span id="score-text">맞은 개수: 0</span>
             </div>
-            <div class="w-full bg-gray-200 rounded-full h-2.5">
-                <div id="progress-bar" class="bg-blue-600 h-2.5 rounded-full" style="width: 10%"></div>
+            <div class="w-full bg-gray-200 rounded-full h-3">
+                <div id="progress-bar" class="bg-blue-600 h-3 rounded-full" style="width: 10%"></div>
             </div>
         </div>
 
-        <div id="question-area" class="text-center py-10">
-            <div id="math-expr" class="text-3xl font-bold mb-8 flex items-center justify-center">
+        <div id="question-area" class="text-center py-6">
+            <div id="math-expr" class="bg-gray-50 rounded-2xl p-8 mb-8 flex items-center justify-center text-4xl font-bold border-2 border-gray-100">
                 </div>
-            <div class="flex flex-col items-center gap-4">
-                <div class="flex items-center gap-2 text-2xl font-bold">
-                    <span>=</span>
-                    <input type="number" id="ans-num" placeholder="분자" class="w-20 text-center border-b-4 border-blue-500 outline-none p-2">
-                    <span class="text-gray-400">/</span>
-                    <input type="number" id="ans-den" placeholder="분모" class="w-20 text-center border-b-4 border-blue-500 outline-none p-2">
+            
+            <div class="flex flex-col items-center gap-6">
+                <div class="flex items-center gap-3">
+                    <span class="text-3xl font-bold">=</span>
+                    <div class="flex flex-col items-center">
+                        <input type="number" id="ans-num" placeholder="분자" class="w-24 text-center border-b-4 border-blue-500 outline-none p-2 text-2xl font-bold bg-blue-50 rounded-t-lg">
+                        <input type="number" id="ans-den" placeholder="분모" class="w-24 text-center border-t-2 border-gray-300 outline-none p-2 text-2xl font-bold bg-blue-50 rounded-b-lg">
+                    </div>
                 </div>
-                <button id="next-btn" class="mt-6 w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-xl shadow-lg transition text-xl">
-                    정답 확인 및 다음 문제
+                <button id="next-btn" class="mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-5 rounded-2xl shadow-lg transition text-2xl active:scale-95">
+                    정답 확인
                 </button>
             </div>
         </div>
 
         <div id="result-screen" class="hidden text-center py-6">
-            <h2 class="text-4xl font-extrabold text-blue-600 mb-4">학습 완료! 🎉</h2>
-            <div class="bg-blue-50 p-6 rounded-2xl mb-6">
-                <p class="text-xl mb-2">최종 점수: <span id="final-score" class="font-bold text-2xl">0</span> / 10</p>
-                <p class="text-lg text-gray-600">성취도: <span id="grade">A</span></p>
+            <h2 class="text-4xl font-extrabold text-blue-600 mb-4">학습 종료!</h2>
+            <div class="bg-blue-50 p-8 rounded-3xl mb-6 border-2 border-blue-100">
+                <p class="text-2xl mb-2">내 점수: <span id="final-score" class="font-bold text-3xl text-blue-700">0</span> / 10</p>
+                <p id="grade-comment" class="text-lg text-gray-600 font-bold"></p>
             </div>
             
             <div class="space-y-4">
-                <input type="text" id="student-name" placeholder="이름을 입력하세요" class="w-full p-4 border-2 border-gray-200 rounded-xl outline-none focus:border-blue-500">
-                <button onclick="submitScore()" class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-4 rounded-xl shadow-lg transition">
+                <input type="text" id="student-name" placeholder="학생 이름을 입력하세요" class="w-full p-4 border-2 border-gray-200 rounded-xl outline-none focus:border-blue-500 text-xl text-center">
+                <button onclick="submitScore()" class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-4 rounded-xl shadow-lg transition text-xl">
                     선생님께 결과 제출하기
                 </button>
-                <button onclick="location.reload()" class="w-full text-gray-400 font-medium py-2">다시 시작하기</button>
+                <button onclick="location.reload()" class="w-full text-gray-400 font-medium py-2 underline">처음부터 다시 풀기</button>
             </div>
         </div>
     </div>
@@ -68,17 +90,19 @@
         function gcd(a, b) { return b === 0 ? a : gcd(b, a % b); }
 
         function simplify(n, d) {
+            if (d === 0) return { num: n, den: 1 };
             const common = gcd(Math.abs(n), Math.abs(d));
             const sign = (n * d >= 0) ? 1 : -1;
             return { num: sign * Math.abs(n) / common, den: Math.abs(d) / common };
         }
 
         function generateQuestion() {
+            // 분모가 너무 크지 않게 2~9 사이로 조정
             const n1 = Math.floor(Math.random() * 9) + 1;
-            const d1 = Math.floor(Math.random() * 9) + 2;
+            const d1 = Math.floor(Math.random() * 8) + 2;
             const n2 = Math.floor(Math.random() * 9) + 1;
-            const d2 = Math.floor(Math.random() * 9) + 2;
-            const ops = ['+', '-', '*'];
+            const d2 = Math.floor(Math.random() * 8) + 2;
+            const ops = ['+', '-', '×'];
             const op = ops[Math.floor(Math.random() * ops.length)];
 
             let res;
@@ -89,22 +113,25 @@
             currentAnswer = res;
 
             document.getElementById('math-expr').innerHTML = `
-                <div class="fraction"><span class="numerator">${n1}</span><span class="denominator">${d1}</span></div>
-                <span class="mx-2">${op}</span>
-                <div class="fraction"><span class="numerator">${n2}</span><span class="denominator">${d2}</span></div>
+                <div class="fraction-container"><div class="numerator">${n1}</div><div class="denominator">${d1}</div></div>
+                <div class="operator">${op}</div>
+                <div class="fraction-container"><div class="numerator">${n2}</div><div class="denominator">${d2}</div></div>
             `;
         }
 
         document.getElementById('next-btn').addEventListener('click', () => {
-            const uNum = parseInt(document.getElementById('ans-num').value);
-            const uDen = parseInt(document.getElementById('ans-den').value);
+            const uNumInput = document.getElementById('ans-num');
+            const uDenInput = document.getElementById('ans-den');
+            const uNum = parseInt(uNumInput.value);
+            const uDen = parseInt(uDenInput.value);
 
             if(isNaN(uNum) || isNaN(uDen)) { alert("분자와 분모를 모두 입력해주세요!"); return; }
+            if(uDen === 0) { alert("분모는 0이 될 수 없습니다."); return; }
 
             const userRes = simplify(uNum, uDen);
             if(userRes.num === currentAnswer.num && userRes.den === currentAnswer.den) {
                 correctCount++;
-                alert("정답입니다! 😊");
+                alert("정답입니다! 잘했어요! 👏");
             } else {
                 alert(`아쉬워요! 정답은 ${currentAnswer.num}/${currentAnswer.den} 입니다.`);
             }
@@ -113,8 +140,9 @@
                 currentIdx++;
                 updateUI();
                 generateQuestion();
-                document.getElementById('ans-num').value = '';
-                document.getElementById('ans-den').value = '';
+                uNumInput.value = '';
+                uDenInput.value = '';
+                uNumInput.focus();
             } else {
                 showResult();
             }
@@ -130,16 +158,17 @@
             document.getElementById('question-area').classList.add('hidden');
             document.getElementById('result-screen').classList.remove('hidden');
             document.getElementById('final-score').innerText = correctCount;
-            let grade = 'C';
-            if(correctCount >= 9) grade = 'A+';
-            else if(correctCount >= 7) grade = 'B';
-            document.getElementById('grade').innerText = grade;
+            
+            let comment = "조금 더 연습해볼까요? 😊";
+            if(correctCount >= 9) comment = "와우! 유리수 계산 마스터네요! 🏆";
+            else if(correctCount >= 7) comment = "훌륭해요! 거의 다 맞혔어요! 👍";
+            document.getElementById('grade-comment').innerText = comment;
         }
 
         function submitScore() {
             const name = document.getElementById('student-name').value;
             if(!name) { alert("이름을 입력해주세요!"); return; }
-            alert(`${name} 학생의 기록(${correctCount}점)이 제출되었습니다!\n(실제 연동을 위해서는 구글 폼 설정이 필요합니다)`);
+            alert(`${name} 학생! 결과(${correctCount}점)가 잘 기록되었습니다.\n이 화면을 캡처해서 선생님께 보여드리세요!`);
         }
 
         generateQuestion();
