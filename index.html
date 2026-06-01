@@ -3,75 +3,126 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>유리수 계산 챌린지</title>
+    <title>유리수 혼합계산 마스터</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@700&display=swap');
-        body { font-family: 'Nanum Gothic', sans-serif; background-color: #f0f4f8; }
-        /* 절대 깨지지 않는 분수 디자인 */
-        .fraction { display: inline-flex; flex-direction: column; vertical-align: middle; align-items: center; margin: 0 10px; }
-        .num { border-bottom: 3px solid #333; padding: 0 10px; font-size: 2.5rem; line-height: 1.2; }
-        .den { padding: 0 10px; font-size: 2.5rem; line-height: 1.2; }
-        .op { font-size: 3rem; margin: 0 15px; font-weight: bold; }
-        .integer { font-size: 3rem; font-weight: bold; }
+        body { font-family: 'Nanum Gothic', sans-serif; background-color: #f8fafc; }
+        .math-text { font-size: 2.8rem; color: #1e293b; letter-spacing: 2px; }
+        .frac { display: inline-flex; flex-direction: column; vertical-align: middle; align-items: center; margin: 0 8px; }
+        .num { border-bottom: 3px solid #1e293b; padding: 0 8px; font-size: 2.5rem; line-height: 1.1; }
+        .den { padding: 0 8px; font-size: 2.5rem; line-height: 1.1; }
+        input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; }
     </style>
 </head>
 <body class="flex items-center justify-center min-h-screen p-4">
 
-    <div class="bg-white p-8 rounded-3xl shadow-2xl w-full max-w-2xl border-t-8 border-blue-600">
-        <div class="flex justify-between items-center mb-6 text-xl font-bold">
-            <span class="text-blue-600" id="q-count">문제 1 / 10</span>
-            <span class="text-green-600" id="s-count">맞은 개수: 0</span>
+    <div class="bg-white p-8 rounded-[40px] shadow-2xl w-full max-w-3xl border-b-8 border-indigo-600">
+        <div class="flex justify-between items-center mb-8">
+            <span id="q-idx" class="bg-indigo-100 text-indigo-700 px-4 py-1 rounded-full text-lg font-bold">문제 1 / 10</span>
+            <span id="s-cnt" class="text-emerald-600 text-lg font-bold">맞은 개수: 0</span>
         </div>
 
-        <div id="quiz-page" class="text-center">
-            <div id="display" class="flex items-center justify-center min-h-[180px] bg-gray-50 rounded-2xl mb-10 p-6 border-2 border-gray-100">
+        <div class="bg-slate-50 rounded-3xl p-12 text-center mb-10 min-h-[220px] flex items-center justify-center border-2 border-dashed border-slate-200">
+            <div id="math-display" class="math-text flex flex-wrap items-center justify-center leading-relaxed">
                 </div>
-
-            <div class="bg-blue-50 p-6 rounded-2xl border-2 border-blue-100">
-                <p class="mb-4 text-blue-800 font-bold">정답을 분수로 입력 (정수는 분모에 1 입력)</p>
-                <div class="flex items-center justify-center gap-4">
-                    <div class="flex flex-col gap-2">
-                        <input type="number" id="ans-n" placeholder="분자" class="w-28 text-center text-2xl p-3 border-2 border-blue-400 rounded-lg outline-none">
-                        <div class="h-1 bg-gray-400 rounded-full"></div>
-                        <input type="number" id="ans-d" placeholder="분모" class="w-28 text-center text-2xl p-3 border-2 border-blue-400 rounded-lg outline-none">
-                    </div>
-                    <button id="next-btn" class="bg-blue-600 hover:bg-blue-700 text-white text-2xl px-10 py-10 rounded-2xl shadow-lg font-bold">확인</button>
-                </div>
-            </div>
         </div>
 
-        <div id="result-page" class="hidden text-center py-10">
-            <h2 class="text-5xl font-bold text-blue-700 mb-6">학습 완료!</h2>
-            <div class="bg-blue-50 p-10 rounded-3xl mb-8">
-                <p class="text-2xl text-gray-600 mb-2">당신의 점수는?</p>
-                <p class="text-7xl font-black text-blue-600"><span id="final-score">0</span> / 10</p>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-center bg-indigo-50 p-8 rounded-3xl">
+            <div class="text-center">
+                <p class="text-indigo-900 font-bold mb-4 italic">"기약분수로 답하세요"</p>
+                <div class="inline-flex flex-col items-center">
+                    <input type="number" id="u-n" placeholder="분자" class="w-32 text-center text-3xl p-3 border-4 border-indigo-300 rounded-2xl outline-none focus:border-indigo-500 transition-all">
+                    <div class="w-full h-1 bg-indigo-800 my-2 rounded-full"></div>
+                    <input type="number" id="u-d" placeholder="분모" class="w-32 text-center text-3xl p-3 border-4 border-indigo-300 rounded-2xl outline-none focus:border-indigo-500 transition-all">
+                </div>
             </div>
-            <input type="text" id="name" placeholder="이름을 입력하세요" class="w-full text-center text-2xl p-4 border-2 border-gray-300 rounded-xl mb-4 outline-none">
-            <button onclick="alert('제출되었습니다!')" class="w-full bg-green-500 text-white text-3xl py-5 rounded-xl font-bold shadow-md">결과 제출</button>
+            <button id="check-btn" class="h-full bg-indigo-600 hover:bg-indigo-700 text-white text-3xl py-10 rounded-3xl shadow-xl active:scale-95 transition-all font-black">정답 확인</button>
         </div>
     </div>
 
     <script>
-        let step = 1; let score = 0; let sol = { n: 0, d: 1 };
+        let step = 1; let score = 0; let answer = { n: 0, d: 1 };
         function gcd(a, b) { return b === 0 ? a : gcd(b, a % b); }
 
-        function make() {
-            let n1 = (Math.floor(Math.random() * 15) - 7) || 1;
-            let d1 = Math.random() > 0.5 ? 1 : Math.floor(Math.random() * 8) + 2;
-            let n2 = (Math.floor(Math.random() * 15) - 7) || 1;
-            let d2 = Math.random() > 0.5 ? 1 : Math.floor(Math.random() * 8) + 2;
-            const ops = ['+', '-', '×', '÷']; const op = ops[Math.floor(Math.random() * 4)];
+        function draw(n, d) {
+            if (d === 1) return `<span>${n < 0 ? '('+n+')' : n}</span>`;
+            return `<div class="frac"><div class="num">${n}</div><div class="den">${d}</div></div>`;
+        }
 
-            let rn, rd;
-            if(op === '+') { rn = n1*d2 + n2*d1; rd = d1*d2; }
-            else if(op === '-') { rn = n1*d2 - n2*d1; rd = d1*d2; }
-            else if(op === '×') { rn = n1*n2; rd = d1*d2; }
-            else { rn = n1*d2; rd = d1*n2; if(rd===0) { make(); return; } }
+        function createMixQuiz() {
+            // 학습지 스타일의 3개 수 혼합 계산 생성
+            let n1 = (Math.floor(Math.random() * 11) - 5) || 2;
+            let d1 = Math.random() > 0.7 ? 1 : Math.floor(Math.random() * 5) + 2;
+            let n2 = (Math.floor(Math.random() * 11) - 5) || 3;
+            let d2 = Math.random() > 0.7 ? 1 : Math.floor(Math.random() * 5) + 2;
+            let n3 = (Math.floor(Math.random() * 11) - 5) || 1;
+            let d3 = Math.random() > 0.7 ? 1 : Math.floor(Math.random() * 5) + 2;
 
-            let c = gcd(Math.abs(rn), Math.abs(rd));
-            sol.n = rn/c; sol.d = rd/c;
-            if(sol.d < 0) { sol.n *= -1; sol.d *= -1; }
+            const ops = ['+', '-', '×', '÷'];
+            let op1 = ops[Math.floor(Math.random() * 4)];
+            let op2 = ops[Math.floor(Math.random() * 4)];
 
-            const draw = (n, d) => d === 1 ? `<span class="integer">${n < 0 ? '('+n+')' : n}</span>` : `<div class="fraction"><div class="num">${n}</div><div class="den">${d}</div></div>`;
-            document.getElementById('display').innerHTML = `${
+            // 계산 로직 (간소화된 분수 연산 함수)
+            const calc = (v1, v2, o) => {
+                let resN, resD;
+                if(o==='+') { resN = v1.n*v2.d + v2.n*v1.d; resD = v1.d*v2.d; }
+                else if(o==='-') { resN = v1.n*v2.d - v2.n*v1.d; resD = v1.d*v2.d; }
+                else if(o==='×') { resN = v1.n*v2.n; resD = v1.d*v2.d; }
+                else { resN = v1.n*v2.d; resD = v1.d*v2.n; }
+                return {n: resN, d: resD};
+            };
+
+            // 연산자 우선순위에 따른 결과 도출 (곱셈/나눗셈 먼저)
+            let final;
+            let priority = (o) => o === '×' || o === '÷';
+
+            if (priority(op2) && !priority(op1)) {
+                let mid = calc({n:n2, d:d2}, {n:n3, d:d3}, op2);
+                final = calc({n:n1, d:d1}, mid, op1);
+            } else {
+                let mid = calc({n:n1, d:d1}, {n:n2, d:d2}, op1);
+                final = calc(mid, {n:n3, d:d3}, op2);
+            }
+
+            if (final.d === 0 || isNaN(final.n)) { createMixQuiz(); return; }
+
+            let common = gcd(Math.abs(final.n), Math.abs(final.d));
+            answer.n = final.n / common; answer.d = final.d / common;
+            if(answer.d < 0) { answer.n *= -1; answer.d *= -1; }
+
+            document.getElementById('math-display').innerHTML = `
+                ${draw(n1, d1)} <span class="mx-2 text-red-500">${op1}</span> 
+                ${draw(n2, d2)} <span class="mx-2 text-red-500">${op2}</span> 
+                ${draw(n3, d3)} <span class="ml-4 text-indigo-400">=</span>
+            `;
+        }
+
+        document.getElementById('check-btn').onclick = () => {
+            const un = parseInt(document.getElementById('u-n').value);
+            const ud = parseInt(document.getElementById('u-d').value);
+            if(isNaN(un) || isNaN(ud)) return;
+
+            let c = gcd(Math.abs(un), Math.abs(ud));
+            let sn = un/c, sd = ud/c;
+            if(sd < 0) { sn *= -1; sd *= -1; }
+
+            if(sn === answer.n && sd === answer.d) { score++; alert("와우! 혼합 계산 성공! ✨"); }
+            else { alert(`아쉬워요! 정답은 ${answer.n}/${answer.d} 입니다.`); }
+
+            if(step < 10) {
+                step++;
+                document.getElementById('q-idx').innerText = `문제 ${step} / 10`;
+                document.getElementById('s-cnt').innerText = `맞은 개수: ${score}`;
+                document.getElementById('u-n').value = ""; document.getElementById('u-d').value = "";
+                createMixQuiz();
+            } else {
+                alert(`모든 문제를 풀었습니다! 최종 점수: ${score}/10\n화면을 캡처해 제출하세요.`);
+                location.reload();
+            }
+        };
+
+        createMixQuiz();
+    </script>
+</body>
+</html>
