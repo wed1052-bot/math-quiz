@@ -2,27 +2,31 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>일차식 계산 통계 마스터</title>
+    <title>일차식 계산 통계 마스터 (분수 지원)</title>
     <style>
-        body { font-family: sans-serif; background: #f0fdf4; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; }
+        body { font-family: 'Malgun Gothic', sans-serif; background: #f0fdf4; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; }
         .container { background: white; padding: 30px; border-radius: 30px; box-shadow: 0 15px 35px rgba(0,0,0,0.1); width: 100%; max-width: 650px; text-align: center; border-top: 10px solid #22c55e; }
         .header { display: flex; justify-content: space-between; margin-bottom: 25px; font-weight: bold; color: #166534; }
         
-        .problem-box { background: #f0fdf4; border: 2px solid #bbf7d0; border-radius: 20px; padding: 40px 20px; margin-bottom: 30px; min-height: 150px; display: flex; align-items: center; justify-content: center; font-size: 2.2rem; font-weight: bold; color: #1e293b; }
+        /* 문제 영역: 분수 디자인 포함 */
+        .problem-box { background: #f0fdf4; border: 2px solid #bbf7d0; border-radius: 20px; padding: 40px 20px; margin-bottom: 30px; min-height: 150px; display: flex; align-items: center; justify-content: center; font-size: 2.2rem; font-weight: bold; color: #1e293b; flex-wrap: wrap; }
         
-        .frac { display: inline-flex; flex-direction: column; vertical-align: middle; align-items: center; margin: 0 5px; font-size: 0.85em; }
+        .frac { display: inline-flex; flex-direction: column; vertical-align: middle; align-items: center; margin: 0 5px; font-size: 0.85em; line-height: 1.1; }
         .num { border-bottom: 2px solid #1e293b; padding: 0 5px; }
         .den { padding: 0 5px; }
 
         .answer-zone { background: #f9fafb; padding: 25px; border-radius: 20px; border: 1px solid #e5e7eb; }
         .input-row { display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 1.5rem; margin: 15px 0; }
-        input { width: 70px; text-align: center; font-size: 1.5rem; border: 2px solid #cbd5e1; border-radius: 8px; padding: 8px; outline: none; }
+        
+        /* 정답 입력 분수 박스 */
+        .fraction-input { display: flex; flex-direction: column; align-items: center; background: white; padding: 8px; border-radius: 10px; border: 1px solid #ddd; }
+        input { width: 65px; text-align: center; font-size: 1.5rem; border: 2px solid #cbd5e1; border-radius: 8px; padding: 5px; outline: none; }
         input:focus { border-color: #22c55e; }
+        .line { width: 55px; height: 2px; background: #1e293b; margin: 5px 0; }
         
         .btn-main { background: #22c55e; color: white; border: none; padding: 20px; font-size: 1.4rem; font-weight: bold; border-radius: 15px; cursor: pointer; width: 100%; transition: 0.2s; box-shadow: 0 4px 0 #16a34a; }
         .btn-main:active { transform: translateY(3px); box-shadow: none; }
 
-        /* 통계 화면 디자인 */
         .stats-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin: 20px 0; }
         .stat-item { background: #f8fafc; padding: 15px; border-radius: 15px; border: 1px solid #e2e8f0; }
         .stat-label { font-size: 0.9rem; color: #64748b; margin-bottom: 5px; }
@@ -42,99 +46,95 @@
             <div class="problem-box" id="display">로딩 중...</div>
             
             <div class="answer-zone">
+                <p style="color:#166534; font-weight:bold;">정답 입력 (기약분수)</p>
                 <div class="input-row">
-                    <input type="number" id="a-n" placeholder="x 계수"> x + <input type="number" id="b-n" placeholder="상수항">
+                    <div class="fraction-input">
+                        <input type="number" id="a-n" placeholder="분자">
+                        <div class="line"></div>
+                        <input type="number" id="a-d" value="1">
+                    </div>
+                    <span>x + </span>
+                    <div class="fraction-input">
+                        <input type="number" id="b-n" placeholder="분자">
+                        <div class="line"></div>
+                        <input type="number" id="b-d" value="1">
+                    </div>
                 </div>
                 <button class="btn-main" onclick="check()">정답 확인</button>
             </div>
         </div>
 
         <div id="result-ui" class="hidden">
-            <h1 id="congrats" style="color:#166534; margin-bottom:10px;">세트 종료! 🎉</h1>
-            <input type="text" id="user-name" placeholder="이름을 입력하세요" style="width:80%; font-size:1.5rem; padding:10px; margin-bottom:20px; text-align:center; border-radius:10px; border:2px solid #22c55e;">
+            <h1 style="color:#166534; margin-bottom:10px;">세트 종료! 🎉</h1>
+            <input type="text" id="user-name" placeholder="학생 이름을 입력하세요" style="width:80%; font-size:1.5rem; padding:10px; margin-bottom:20px; text-align:center; border-radius:10px; border:2px solid #22c55e;">
             
             <div class="stat-item" style="background:#dcfce7; border:none; margin-bottom:20px;">
-                <div class="stat-label">방금 맞은 개수</div>
+                <div class="stat-label">이번 세트 점수</div>
                 <div class="stat-value" style="font-size:3rem;" id="set-score">0 / 10</div>
             </div>
 
             <h3 style="text-align:left; color:#475569; margin-left:5px;">📊 전체 누적 통계</h3>
             <div class="stats-grid">
-                <div class="stat-item">
-                    <div class="stat-label">총 세트</div>
-                    <div class="stat-value" id="total-sets">0</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-label">총 정답</div>
-                    <div class="stat-value" id="total-correct">0</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-label">전체 정답률</div>
-                    <div class="stat-value" id="total-rate">0%</div>
-                </div>
+                <div class="stat-item"><div class="stat-label">총 세트</div><div class="stat-value" id="total-sets">0</div></div>
+                <div class="stat-item"><div class="stat-label">총 정답</div><div class="stat-value" id="total-correct">0</div></div>
+                <div class="stat-item"><div class="stat-label">평균 정답률</div><div class="stat-value" id="total-rate">0%</div></div>
             </div>
 
-            <button class="btn-main" onclick="startNewSet()">다음 세트 풀기</button>
-            <button onclick="window.print()" style="margin-top:15px; background:none; border:none; color:#64748b; text-decoration:underline; cursor:pointer;">성적표 인쇄하기</button>
+            <button class="btn-main" onclick="startNewSet()">다음 세트 도전하기</button>
+            <button onclick="window.print()" style="margin-top:15px; background:none; border:none; color:#64748b; text-decoration:underline; cursor:pointer;">기록 인쇄 / PDF 저장</button>
         </div>
     </div>
 
     <script>
-        // 누적 데이터를 저장할 변수
         let global = { sets: 0, correct: 0, totalProblems: 0 };
         let session = { idx: 1, score: 0 };
-        let curProb;
+        let cur;
 
         const problems = [
-            { q: "2(x + 3) + 4(x - 1)", a: 6, b: 2 },
-            { q: "5(x - 2) - 2(x - 3)", a: 3, b: -4 },
-            { q: "-(3x + 1) + 2(2x + 4)", a: 1, b: 7 },
-            { q: "3(2x - 5) + 7", a: 6, b: -8 },
-            { q: "4x - 2(x - 3)", a: 2, b: 6 },
-            { q: "6(x/2 + 1) - 2x", a: 1, b: 6 },
-            { q: "2(3x + 4) - 5x", a: 1, b: 8 },
-            { q: "3(x - 1) + 2(x + 2)", a: 5, b: 1 },
-            { q: "10 - 2(x - 4)", a: -2, b: 18 },
-            { q: "5x + 3(2 - x)", a: 2, b: 6 }
+            { h: `2(x + <div class="frac"><div class="num">1</div><div class="den">2</div></div>) - <div class="frac"><div class="num">1</div><div class="den">3</div></div>(3x + 9)`, an: 1, ad: 1, bn: -2, bd: 1 },
+            { h: `<div class="frac"><div class="num">1</div><div class="den">2</div></div>(4x - 6) + 3x`, an: 5, ad: 1, bn: -3, bd: 1 },
+            { h: `<div class="frac"><div class="num">2</div><div class="den">3</div></div>x + <div class="frac"><div class="num">1</div><div class="den">6</div></div>x`, an: 5, ad: 6, bn: 0, bd: 1 },
+            { h: `<div class="frac"><div class="num">x+1</div><div class="den">2</div></div> + <div class="frac"><div class="num">x-1</div><div class="den">3</div></div>`, an: 5, ad: 6, bn: 1, bd: 6 },
+            { h: `3(x - 2) + 2(x + 1)`, an: 5, ad: 1, bn: -4, bd: 1 },
+            { h: `<div class="frac"><div class="num">3</div><div class="den">4</div></div>(8x - 4) - 2x`, an: 4, ad: 1, bn: -3, bd: 1 },
+            { h: `-(x - <div class="frac"><div class="num">2</div><div class="den">5</div></div>) + <div class="frac"><div class="num">1</div><div class="den">2</div></div>x`, an: -1, ad: 2, bn: 2, bd: 5 },
+            { h: `10 - 2(x - 4)`, an: -2, ad: 1, bn: 18, bd: 1 },
+            { h: `5x + 3(2 - x)`, an: 2, ad: 1, bn: 6, bd: 1 },
+            { h: `<div class="frac"><div class="num">2x</div><div class="den">5</div></div> - <div class="frac"><div class="num">x</div><div class="den">2</div></div>`, an: -1, ad: 10, bn: 0, bd: 1 }
         ];
 
         function load() {
-            curProb = problems[Math.floor(Math.random() * problems.length)];
-            document.getElementById('display').innerText = curProb.q;
+            cur = problems[Math.floor(Math.random() * problems.length)];
+            document.getElementById('display').innerHTML = cur.h;
         }
 
         function check() {
-            const ua = parseInt(document.getElementById('a-n').value);
-            const ub = parseInt(document.getElementById('b-n').value);
+            const an = parseInt(document.getElementById('a-n').value);
+            const ad = parseInt(document.getElementById('a-d').value);
+            const bn = parseInt(document.getElementById('b-n').value);
+            const bd = parseInt(document.getElementById('b-d').value);
 
-            if (isNaN(ua) || isNaN(ub)) return alert("정답을 입력해주세요!");
+            if([an, ad, bn, bd].some(isNaN)) return alert("정답을 입력하세요!");
 
-            if (ua === curProb.a && ub === curProb.b) {
-                session.score++; alert("정답입니다! 😊");
+            if(an === cur.an && ad === cur.ad && bn === cur.bn && bd === cur.bd) {
+                session.score++; alert("정답! ✨");
             } else {
-                alert(`아쉽네요! 정답은 ${curProb.a}x + (${curProb.b}) 입니다.`);
+                alert(`오답! 정답은 (${cur.an}/${cur.ad})x + (${cur.bn}/${cur.bd})`);
             }
 
-            if (session.idx < 10) {
+            if(session.idx < 10) {
                 session.idx++;
                 document.getElementById('q-count').innerText = `문제 ${session.idx} / 10`;
-                document.getElementById('a-n').value = ""; document.getElementById('b-n').value = "";
+                ['a-n','b-n'].forEach(id => document.getElementById(id).value = "");
+                ['a-d','b-d'].forEach(id => document.getElementById(id).value = "1");
                 load();
-            } else {
-                showResult();
-            }
+            } else { showResult(); }
         }
 
         function showResult() {
-            // 누적 데이터 업데이트
-            global.sets++;
-            global.correct += session.score;
-            global.totalProblems += 10;
-
+            global.sets++; global.correct += session.score; global.totalProblems += 10;
             document.getElementById('quiz-ui').classList.add('hidden');
             document.getElementById('result-ui').classList.remove('hidden');
-            
-            // 화면 표시
             document.getElementById('set-score').innerText = `${session.score} / 10`;
             document.getElementById('total-sets').innerText = global.sets;
             document.getElementById('total-correct').innerText = global.correct;
@@ -145,7 +145,6 @@
             session = { idx: 1, score: 0 };
             document.getElementById('q-count').innerText = "문제 1 / 10";
             document.getElementById('session-info').innerText = `현재 세트: ${global.sets + 1}`;
-            document.getElementById('a-n').value = ""; document.getElementById('b-n').value = "";
             document.getElementById('quiz-ui').classList.remove('hidden');
             document.getElementById('result-ui').classList.add('hidden');
             load();
