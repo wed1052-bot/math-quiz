@@ -2,16 +2,15 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>일차식 계산 통계 마스터</title>
+    <title>일차식 혼합 계산 마스터</title>
     <style>
         body { font-family: 'Malgun Gothic', sans-serif; background: #f0fdf4; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; }
         .container { background: white; padding: 30px; border-radius: 30px; box-shadow: 0 15px 35px rgba(0,0,0,0.1); width: 100%; max-width: 650px; text-align: center; border-top: 10px solid #22c55e; }
         .header { display: flex; justify-content: space-between; margin-bottom: 25px; font-weight: bold; color: #166534; }
         
-        /* 문제 영역 전용 스타일 */
         .problem-box { background: #f0fdf4; border: 2px solid #bbf7d0; border-radius: 20px; padding: 40px 20px; margin-bottom: 30px; min-height: 160px; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; font-weight: bold; color: #1e293b; flex-wrap: wrap; }
         
-        /* 분수 스타일 강제 지정 */
+        /* 분수 스타일 */
         .f-wrap { display: inline-flex; flex-direction: column; vertical-align: middle; align-items: center; line-height: 1; margin: 0 8px; font-size: 0.9em; }
         .f-num { border-bottom: 3px solid #1e293b; padding: 0 6px; margin-bottom: 2px; }
         .f-den { padding: 0 6px; }
@@ -42,11 +41,10 @@
                 <span id="q-count">문제 1 / 10</span>
                 <span id="session-info" style="color:#22c55e">세트: 1</span>
             </div>
-            <div class="problem-box" id="display">
-                </div>
+            <div class="problem-box" id="display">로딩 중...</div>
             
             <div class="answer-zone">
-                <p style="color:#166534; font-weight:bold; margin-bottom: 10px;">정답 입력 (기약분수)</p>
+                <p style="color:#166534; font-weight:bold; margin-bottom: 10px;">정답 입력 (정수는 분모에 1)</p>
                 <div class="input-row">
                     <div class="fraction-input">
                         <input type="number" id="a-n" placeholder="분자">
@@ -90,22 +88,24 @@
         let session = { idx: 1, score: 0 };
         let cur;
 
-        // 분수 출력을 위한 헬퍼 함수
         function makeFrac(n, d) {
             return `<div class="f-wrap"><div class="f-num">${n}</div><div class="f-den">${d}</div></div>`;
         }
 
+        // 정수와 분수가 적절히 섞인 문제 데이터셋
         const problems = [
+            // 정수 위주 문제
+            { h: `3(x - 2) + 2(x + 5)`, an: 5, ad: 1, bn: 4, bd: 1 },
+            { h: `4(2x - 1) - 3(x - 2)`, an: 5, ad: 1, bn: 2, bd: 1 },
+            { h: `7x - 2(3x - 5)`, an: 1, ad: 1, bn: 10, bd: 1 },
+            { h: `-2(x - 4) + 5(2x + 1)`, an: 8, ad: 1, bn: 13, bd: 1 },
+            { h: `10 - 2(x - 4)`, an: -2, ad: 1, bn: 18, bd: 1 },
+            // 분수 포함 문제
             { h: `${makeFrac(1, 2)}(4x - 6) + 3x`, an: 5, ad: 1, bn: -3, bd: 1 },
             { h: `2(x + ${makeFrac(1, 2)}) - ${makeFrac(1, 3)}(3x + 9)`, an: 1, ad: 1, bn: -2, bd: 1 },
             { h: `${makeFrac(2, 3)}x + ${makeFrac(1, 6)}x`, an: 5, ad: 6, bn: 0, bd: 1 },
             { h: `${makeFrac('x+1', 2)} + ${makeFrac('x-1', 3)}`, an: 5, ad: 6, bn: 1, bd: 6 },
-            { h: `${makeFrac(3, 4)}(8x - 4) - 2x`, an: 4, ad: 1, bn: -3, bd: 1 },
-            { h: `-(x - ${makeFrac(2, 5)}) + ${makeFrac(1, 2)}x`, an: -1, ad: 2, bn: 2, bd: 5 },
-            { h: `${makeFrac(1, 4)}(4x + 8) - ${makeFrac(1, 2)}x`, an: 1, ad: 2, bn: 2, bd: 1 },
-            { h: `3(${makeFrac(1, 3)}x - 2) + 5`, an: 1, ad: 1, bn: -1, bd: 1 },
-            { h: `${makeFrac('2x', 5)} - ${makeFrac('x', 2)}`, an: -1, ad: 10, bn: 0, bd: 1 },
-            { h: `${makeFrac(3, 2)}x + ${makeFrac(1, 4)} - x`, an: 1, ad: 2, bn: 1, bd: 4 }
+            { h: `${makeFrac('2x', 5)} - ${makeFrac('x', 2)}`, an: -1, ad: 10, bn: 0, bd: 1 }
         ];
 
         function load() {
@@ -119,12 +119,12 @@
             const bn = parseInt(document.getElementById('b-n').value);
             const bd = parseInt(document.getElementById('b-d').value);
 
-            if([an, ad, bn, bd].some(isNaN)) return alert("정답 칸을 모두 채워주세요!");
+            if([an, ad, bn, bd].some(isNaN)) return alert("모든 칸을 채워주세요!");
 
             if(an === cur.an && ad === cur.ad && bn === cur.bn && bd === cur.bd) {
-                session.score++; alert("정답입니다! 🌟");
+                session.score++; alert("정답입니다! 😊");
             } else {
-                alert(`오답입니다! 정답은 (${cur.an}/${cur.ad})x + (${cur.bn}/${cur.bd})`);
+                alert(`아쉽네요! 정답은 (${cur.an}/${cur.ad})x + (${cur.bn}/${cur.bd})`);
             }
 
             if(session.idx < 10) {
