@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>일차식 계산 - 분배법칙 강화형</title>
+    <title>일차식 계산 - 최종 수정본</title>
     <style>
         :root { --primary: #10b981; --bg: #f8fafc; }
         body { font-family: 'Malgun Gothic', sans-serif; background: var(--bg); display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
@@ -10,12 +10,10 @@
         .header { display: flex; justify-content: space-between; margin-bottom: 25px; font-weight: bold; color: #065f46; }
         .problem-box { background: #f0fdf4; border-radius: 20px; padding: 45px 15px; margin-bottom: 30px; min-height: 150px; display: flex; align-items: center; justify-content: center; font-size: 2.6rem; font-weight: bold; color: #1e293b; line-height: 1.5; }
         
-        /* 분수 스타일 */
-        .f-wrap { display: inline-flex; flex-direction: column; vertical-align: middle; align-items: center; line-height: 1.1; margin: 0 8px; font-size: 0.75em; }
+        .f-wrap { display: inline-flex; flex-direction: column; vertical-align: middle; align-items: center; line-height: 1.1; margin: 0 5px; font-size: 0.75em; }
         .f-num { border-bottom: 3px solid #1e293b; padding: 0 5px; }
         .f-den { padding: 0 5px; }
 
-        /* 입력 UI */
         .answer-zone { background: #f9fafb; padding: 25px; border-radius: 20px; border: 1px solid #e2e8f0; }
         .ans-unit { display: inline-flex; flex-direction: column; align-items: center; vertical-align: middle; }
         .ans-input { width: 80px; text-align: center; font-size: 1.4rem; padding: 8px; border: 2px solid #cbd5e1; border-radius: 10px; outline: none; }
@@ -37,7 +35,7 @@
         <div id="quiz-ui">
             <div class="header">
                 <span id="q-count">문제 1 / 10</span>
-                <span>일차식 분배법칙 마스터</span>
+                <span>일차식 계산 트레이닝</span>
             </div>
             <div class="problem-box" id="display">...</div>
             
@@ -46,13 +44,13 @@
                     <div class="ans-unit">
                         <input type="number" id="a-num" class="ans-input" placeholder="분자">
                         <div class="ans-line"></div>
-                        <input type="number" id="a-den" class="ans-input" placeholder="분모" value="1">
+                        <input type="number" id="a-den" class="ans-input" value="1">
                     </div>
                     <span>x + </span>
                     <div class="ans-unit">
                         <input type="number" id="b-num" class="ans-input" placeholder="분자">
                         <div class="ans-line"></div>
-                        <input type="number" id="b-den" class="ans-input" placeholder="분모" value="1">
+                        <input type="number" id="b-den" class="ans-input" value="1">
                     </div>
                 </div>
                 <button class="btn-main" onclick="check()">확인</button>
@@ -81,7 +79,6 @@
         let currentAns = { aN: 0, aD: 1, bN: 0, bD: 1 };
 
         function getGCD(a, b) { return b === 0 ? Math.abs(a) : getGCD(b, a % b); }
-
         function simplify(n, d) {
             const common = getGCD(n, d);
             let num = n / common;
@@ -90,50 +87,58 @@
             return [num, den];
         }
 
-        // 수식 표시용 기호/숫자 보정 함수
-        function fmtX(n, d, isFirst = false) {
+        // 괄호 밖 숫자(m, n) 표시용 (1 생략)
+        function fmtOutside(val, isFirst = false) {
+            if (val === 1) return isFirst ? "" : " + ";
+            if (val === -1) return isFirst ? "-" : " - ";
+            if (val > 0) return (isFirst ? "" : " + ") + val;
+            return (isFirst ? "-" : " - ") + Math.abs(val);
+        }
+
+        // 괄호 안 항 표시용
+        function fmtInside(n, d, type, isFirst = false) {
             if (n === 0) return "";
             const [sn, sd] = simplify(n, d);
             let sign = sn > 0 ? (isFirst ? "" : " + ") : (isFirst ? "-" : " - ");
             let absN = Math.abs(sn);
-            if (sd === 1) return sign + (absN === 1 ? "x" : absN + "x");
-            return sign + `<div class="f-wrap"><div class="f-num">${absN}</div><div class="f-den">${sd}</div></div>x`;
-        }
-
-        function fmtNum(n, d, isFirst = false) {
-            if (n === 0) return "";
-            const [sn, sd] = simplify(n, d);
-            let sign = sn > 0 ? (isFirst ? "" : " + ") : (isFirst ? " - " : " - ");
-            let absN = Math.abs(sn);
-            if (sd === 1) return sign + absN;
-            return sign + `<div class="f-wrap"><div class="f-num">${absN}</div><div class="f-den">${sd}</div></div>`;
+            
+            let valStr = "";
+            if (sd === 1) {
+                if (type === 'x') valStr = (absN === 1 ? "x" : absN + "x");
+                else valStr = absN;
+            } else {
+                valStr = `<div class="f-wrap"><div class="f-num">${absN}</div><div class="f-den">${sd}</div></div>` + (type === 'x' ? "x" : "");
+            }
+            return sign + valStr;
         }
 
         function generate() {
-            // 유형: m(ax + b) + n(cx + d)
+            // m(ax + b) + n(cx + d) 형태
             let m = (Math.floor(Math.random() * 4) + 2) * (Math.random() > 0.5 ? 1 : -1);
-            let n = (Math.floor(Math.random() * 3) + 1) * (Math.random() > 0.5 ? 1 : -1);
+            let n = (Math.floor(Math.random() * 4) + 2) * (Math.random() > 0.5 ? 1 : -1);
             
-            // 계수/상수 (기약분수 보장)
-            let aN = Math.floor(Math.random() * 3) + 1, aD = Math.floor(Math.random() * 3) + 1;
-            let bN = Math.floor(Math.random() * 5) - 2, bD = Math.floor(Math.random() * 3) + 1;
-            let cN = Math.floor(Math.random() * 3) + 1, cD = Math.floor(Math.random() * 3) + 1;
-            let dN = Math.floor(Math.random() * 5) - 2, dD = Math.floor(Math.random() * 3) + 1;
+            // 계수/상수 랜덤 (1~5 범위)
+            let aN = rand(1, 4), aD = rand(1, 3);
+            let bN = rand(-5, 5), bD = rand(1, 3); if(bN === 0) bN = 1;
+            let cN = rand(1, 4), cD = rand(1, 3);
+            let dN = rand(-5, 5), dD = rand(1, 3); if(dN === 0) dN = 1;
 
             const [saN, saD] = simplify(aN, aD);
             const [sbN, sbD] = simplify(bN, bD);
             const [scN, scD] = simplify(cN, cD);
             const [sdN, sdD] = simplify(dN, dD);
 
-            let part1 = `${m === 1 ? "" : m === -1 ? "-" : m}(${fmtX(saN, saD, true)}${fmtNum(sbN, sbD)})`;
-            let part2 = `${n > 0 ? " + " + (n === 1 ? "" : n) : " - " + (Math.abs(n) === 1 ? "" : Math.abs(n))}(${fmtX(scN, scD, true)}${fmtNum(sdN, sdD)})`;
+            let part1 = fmtOutside(m, true) + `(${fmtInside(saN, saD, 'x', true)}${fmtInside(sbN, sbD, 'n', false)})`;
+            let part2 = fmtOutside(n, false) + `(${fmtInside(scN, scD, 'x', true)}${fmtInside(sdN, sdD, 'n', false)})`;
 
             document.getElementById('display').innerHTML = part1 + part2;
 
-            // 정답 계산 (분수 덧셈)
+            // 정답 계산
             [currentAns.aN, currentAns.aD] = simplify(m * saN * scD + n * scN * saD, saD * scD);
             [currentAns.bN, currentAns.bD] = simplify(m * sbN * sdD + n * sdN * sbD, sbD * sdD);
         }
+
+        function rand(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
 
         function check() {
             const an = parseInt(document.getElementById('a-num').value);
@@ -141,7 +146,7 @@
             const bn = parseInt(document.getElementById('b-num').value);
             const bd = parseInt(document.getElementById('b-den').value) || 1;
 
-            if (isNaN(an) || isNaN(bn)) return alert("값을 입력하세요!");
+            if (isNaN(an) || isNaN(bn)) return alert("정답을 입력해주세요!");
 
             const [uan, uad] = simplify(an, ad);
             const [ubn, ubd] = simplify(bn, bd);
@@ -151,7 +156,7 @@
             } else {
                 let ansA = currentAns.aD === 1 ? currentAns.aN : `${currentAns.aN}/${currentAns.aD}`;
                 let ansB = currentAns.bD === 1 ? currentAns.bN : `${currentAns.bN}/${currentAns.bD}`;
-                alert(`오답! 정답은 계수: ${ansA}, 상수: ${ansB} 입니다.`);
+                alert(`오답! 정답은 [계수: ${ansA}, 상수: ${ansB}] 입니다.`);
             }
 
             if (session.idx < 10) {
