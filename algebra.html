@@ -8,9 +8,8 @@
         body { font-family: 'Malgun Gothic', sans-serif; background: var(--bg); display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
         .container { background: white; padding: 30px; border-radius: 30px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); width: 100%; max-width: 600px; text-align: center; border-top: 10px solid var(--primary); }
         .header { display: flex; justify-content: space-between; margin-bottom: 25px; font-weight: bold; color: #065f46; }
-        .problem-box { background: #f0fdf4; border-radius: 20px; padding: 45px 15px; margin-bottom: 30px; min-height: 150px; display: flex; align-items: center; justify-content: center; font-size: 2.6rem; font-weight: bold; color: #1e293b; line-height: 1.5; }
+        .problem-box { background: #f0fdf4; border-radius: 20px; padding: 45px 15px; margin-bottom: 30px; min-height: 150px; display: flex; align-items: center; justify-content: center; font-size: 2.4rem; font-weight: bold; color: #1e293b; line-height: 1.5; }
         
-        /* 분수 스타일 */
         .f-wrap { display: inline-flex; flex-direction: column; vertical-align: middle; align-items: center; line-height: 1.1; margin: 0 5px; font-size: 0.75em; }
         .f-num { border-bottom: 3px solid #1e293b; padding: 0 5px; }
         .f-den { padding: 0 5px; }
@@ -19,12 +18,11 @@
         .ans-unit { display: inline-flex; flex-direction: column; align-items: center; vertical-align: middle; }
         .ans-input { width: 80px; text-align: center; font-size: 1.4rem; padding: 8px; border: 2px solid #cbd5e1; border-radius: 10px; outline: none; }
         .ans-line { width: 100%; border-bottom: 2px solid #1e293b; margin: 4px 0; }
-        .input-group { display: inline-flex; align-items: center; gap: 10px; font-size: 2rem; font-weight: bold; }
+        .input-group { display: inline-flex; align-items: center; gap: 10px; font-size: 1.8rem; font-weight: bold; }
 
         .btn-main { background: var(--primary); color: white; border: none; padding: 18px; font-size: 1.4rem; font-weight: bold; border-radius: 15px; cursor: pointer; width: 100%; box-shadow: 0 4px 0 #059669; margin-top: 20px; }
         .btn-main:active { transform: translateY(3px); box-shadow: none; }
 
-        /* 결과창 */
         .result-card { display: none; }
         .name-input { width: 80%; padding: 12px; border: 2px solid var(--primary); border-radius: 12px; font-size: 1.2rem; text-align: center; margin-bottom: 20px; outline: none; }
         .score-box { background: #dcfce7; padding: 30px; border-radius: 20px; margin: 20px 0; }
@@ -91,7 +89,18 @@
             return [num, den];
         }
 
-        function renderTerm(n, d, type, isFirst) {
+        // 텍스트 전용 렌더링 (alert용)
+        function renderText(n, d, type, isFirst) {
+            if (n === 0) return "";
+            const [sn, sd] = simplify(n, d);
+            let absN = Math.abs(sn);
+            let sign = sn > 0 ? (isFirst ? "" : " + ") : (isFirst ? "-" : " - ");
+            let val = (sd === 1) ? (absN === 1 && type === 'x' ? "" : absN) : `${absN}/${sd}`;
+            return sign + val + (type === 'x' ? "x" : "");
+        }
+
+        // 화면 전용 렌더링 (HTML 태그 포함)
+        function renderHTML(n, d, type, isFirst) {
             if (n === 0) return "";
             const [sn, sd] = simplify(n, d);
             let absN = Math.abs(sn);
@@ -125,8 +134,8 @@
             let nSign = n > 0 ? " + " : " - ";
             let nVal = Math.abs(n) === 1 ? "" : Math.abs(n);
 
-            let term1 = renderTerm(saN, saD, 'x', true) + renderTerm(sbN, sbD, 'n', false);
-            let term2 = renderTerm(scN, scD, 'x', true) + renderTerm(sdN, sdD, 'n', false);
+            let term1 = renderHTML(saN, saD, 'x', true) + renderHTML(sbN, sbD, 'n', false);
+            let term2 = renderHTML(scN, scD, 'x', true) + renderHTML(sdN, sdD, 'n', false);
 
             document.getElementById('display').innerHTML = `${mStr}(${term1})${nSign}${nVal}(${term2})`;
 
@@ -150,8 +159,9 @@
             if (uan === currentAns.aN && uad === currentAns.aD && ubn === currentAns.bN && ubd === currentAns.bD) {
                 session.score++; alert("정답입니다! ✨");
             } else {
-                let showA = renderTerm(currentAns.aN, currentAns.aD, 'x', true);
-                let showB = renderTerm(currentAns.bN, currentAns.bD, 'n', false);
+                // 오답 시 텍스트 전용 함수 사용
+                let showA = renderText(currentAns.aN, currentAns.aD, 'x', true);
+                let showB = renderText(currentAns.bN, currentAns.bD, 'n', false);
                 alert(`오답! 정답은 [ ${showA}${showB} ] 입니다.`);
             }
 
