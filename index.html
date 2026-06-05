@@ -2,9 +2,9 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>유리수 무한 계산 챌린지</title>
+    <title>유리수 무한 챌린지 - 통계 모드</title>
     <style>
-        body { font-family: sans-serif; background-color: #f0f4f8; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        body { font-family: sans-serif; background-color: #f0f4f8; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; flex-direction: column; }
         .container { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 100%; max-width: 500px; text-align: center; border-top: 10px solid #2563eb; }
         .header { display: flex; justify-content: space-between; margin-bottom: 20px; font-weight: bold; color: #475569; }
         .problem-box { background: #f8fafc; border: 2px dashed #cbd5e1; border-radius: 15px; padding: 40px 20px; margin-bottom: 30px; min-height: 150px; display: flex; align-items: center; justify-content: center; font-size: 2.2rem; font-weight: bold; flex-wrap: wrap; line-height: 1.5; }
@@ -21,9 +21,15 @@
         .line { width: 100%; height: 2px; background: #1e293b; margin: 8px 0; }
         button { background: #2563eb; color: white; border: none; padding: 18px 35px; font-size: 1.4rem; font-weight: bold; border-radius: 15px; cursor: pointer; }
         
+        /* 통계 테이블 스타일 */
+        .stats-area { width: 100%; max-width: 500px; margin-top: 30px; background: white; padding: 20px; border-radius: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { padding: 12px; border-bottom: 1px solid #e2e8f0; text-align: center; }
+        th { background: #f8fafc; color: #64748b; font-size: 0.9rem; }
+
         .hidden { display: none; }
-        .result-card { background: #2563eb; color: white; padding: 40px; border-radius: 30px; margin-bottom: 20px; }
-        .score-big { font-size: 7rem; font-weight: 900; margin: 10px 0; }
+        .result-card { background: #2563eb; color: white; padding: 30px; border-radius: 30px; margin-bottom: 20px; }
+        .score-big { font-size: 6rem; font-weight: 900; margin: 10px 0; }
     </style>
 </head>
 <body>
@@ -32,7 +38,7 @@
         <div id="quiz-ui">
             <div class="header">
                 <span id="step-txt">문제 1 / 10</span>
-                <span id="score-txt">맞은 개수: 0</span>
+                <span id="set-count-txt">세트: 1</span>
             </div>
             <div class="problem-box" id="problem-display">생성 중...</div>
             <div class="input-group">
@@ -46,103 +52,114 @@
         </div>
 
         <div id="result-ui" class="hidden">
-            <h1>오늘의 결과 🎉</h1>
+            <h2 style="margin:0; color:#1e40af;">세트 종료! 🎉</h2>
             <div class="result-card">
                 <div id="final-score" class="score-big">0</div>
-                <input type="text" id="user-name" placeholder="이름 입력" style="width:80%; font-size:1.2rem; padding:10px; border-radius:10px; border:none; text-align:center;">
+                <input type="text" id="user-name" placeholder="이름을 입력하세요" style="width:80%; font-size:1.3rem; padding:12px; border-radius:15px; border:none; text-align:center; outline:none;">
             </div>
-            <button onclick="window.print()" style="background:#059669; width:100%; color:white; border:none; padding:15px; border-radius:10px; font-size:1.2rem; cursor:pointer;">성적표 저장/인쇄</button>
-            <p onclick="location.reload()" style="margin-top:20px; color:#64748b; cursor:pointer; text-decoration:underline;">새로운 문제 풀기</p>
+            <button onclick="saveAndNext()" style="background:#059669; width:100%; color:white; border:none; padding:18px; border-radius:15px; font-size:1.3rem; font-weight:bold; cursor:pointer;">기록 저장 및 다음 세트</button>
+            <p onclick="window.print()" style="margin-top:15px; color:#64748b; cursor:pointer; text-decoration:underline; font-size:0.9rem;">기록 인쇄/PDF 저장</p>
         </div>
     </div>
 
+    <div class="stats-area" id="stats-area">
+        <h3 style="margin:0 0 10px 0; color:#475569;">📊 누적 학습 기록</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>이름</th>
+                    <th>세트</th>
+                    <th>점수</th>
+                    <th>정답률</th>
+                </tr>
+            </thead>
+            <tbody id="stats-body">
+                </tbody>
+        </table>
+    </div>
+
     <script>
+        let globalSet = 1;
         let currentIdx = 1;
-        let score = 0;
+        let sessionScore = 0;
         let currentProb = { n: 0, d: 1 };
+        let history = [];
 
         function getRand(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
 
-        function makeFracHtml(n, d) {
-            return `<div class="frac"><div class="num">${n}</div><div class="den">${d}</div></div>`;
-        }
-
         function generateProblem() {
             const type = getRand(1, 4);
-            let html = "";
-            let n = 0, d = 1;
+            let html = "", n = 0, d = 1;
 
-            if (type === 1) { // 사칙혼합: a * (b/c) / (d/e)
-                let a = getRand(-5, 5); if(a===0) a=2;
-                let b = getRand(1, 5), c = getRand(2, 4);
-                let d_val = getRand(1, 3), e = getRand(2, 5);
-                html = `(${a}) <span class="op">×</span> ${makeFracHtml(b, c)} <span class="op">÷</span> ${makeFracHtml(d_val, e)}`;
-                // 계산: a * (b/c) * (e/d_val) = (a*b*e) / (c*d_val)
+            if (type === 1) { // 분수 곱셈/나눗셈
+                let a = getRand(-4, 4); if(a===0) a=2;
+                let b = getRand(1, 4), c = getRand(2, 5);
+                let d_val = getRand(1, 3), e = getRand(2, 4);
+                html = `(${a}) <span class="op">×</span> <div class="frac"><div class="num">${b}</div><div class="den">${c}</div></div> <span class="op">÷</span> <div class="frac"><div class="num">${d_val}</div><div class="den">${e}</div></div>`;
                 n = a * b * e; d = c * d_val;
-            } 
-            else if (type === 2) { // 거듭제곱 포함: (-a)^2 - { b + c * d }
-                let a = getRand(1, 4);
-                let b = getRand(5, 15);
-                let c = getRand(-3, 3); if(c===0) c=-2;
-                let d_val = getRand(2, 5);
-                html = `(-${a})<span class="sup">2</span> <span class="op">-</span> { ${b} <span class="op">+</span> (${c}) <span class="op">×</span> ${d_val} }`;
-                n = (Math.pow(-a, 2)) - (b + (c * d_val));
-                d = 1;
-            }
-            else if (type === 3) { // 분수 덧셈 괄호: a * { (b/c) + (d/e) }
-                let c = getRand(2, 3), e = getRand(4, 5);
-                let b = getRand(1, 3), d_val = getRand(1, 3);
-                let commonDen = c * e;
-                let a = commonDen * getRand(1, 2); // 약분되도록 설계
-                html = `${a} <span class="op">×</span> { ${makeFracHtml(b, c)} + ${makeFracHtml(d_val, e)} }`;
-                n = a * (b * e + d_val * c);
-                d = commonDen;
-            }
-            else { // 단순 거듭제곱 나열: (-1)^n + (-1)^m * a
-                let n_pow = getRand(100, 105);
-                let m_pow = n_pow + 1;
-                let a = getRand(2, 9);
-                html = `(-1)<span class="sup">${n_pow}</span> <span class="op">+</span> (-1)<span class="sup">${m_pow}</span> <span class="op">×</span> ${a}`;
-                let resN = Math.pow(-1, n_pow);
-                let resM = Math.pow(-1, m_pow);
-                n = resN + (resM * a);
-                d = 1;
+            } else if (type === 2) { // 거듭제곱 혼합
+                let a = getRand(1, 4), b = getRand(3, 12);
+                let c = getRand(-2, 2); if(c===0) c=2;
+                html = `(-${a})<span class="sup">2</span> <span class="op">-</span> { ${b} + (${c}) <span class="op">×</span> ${getRand(2,4)} }`;
+                n = Math.pow(-a, 2) - (b + (c * 3)); d = 1;
+            } else if (type === 3) { // 분배법칙 기반
+                let common = getRand(2, 4) * 2;
+                let b = 1, d_val = 1;
+                html = `${common} <span class="op">×</span> { <div class="frac"><div class="num">${b}</div><div class="den">${common/2}</div></div> + <div class="frac"><div class="num">${d_val}</div><div class="den">${common}</div></div> }`;
+                n = common * ( (b*(common/(common/2))) + d_val ); d = common;
+            } else { // -1 거듭제곱
+                let p = getRand(100, 200);
+                html = `(-1)<span class="sup">${p}</span> + (-1)<span class="sup">${p+1}</span> <span class="op">×</span> ${getRand(2,9)}`;
+                n = Math.pow(-1, p) + (Math.pow(-1, p+1) * 5); d = 1;
             }
 
-            // 기약분수 만들기
             const getGCD = (a, b) => b === 0 ? a : getGCD(b, a % b);
-            let common = Math.abs(getGCD(n, d));
-            currentProb.n = n / common;
-            currentProb.d = d / common;
+            let commonGCD = Math.abs(getGCD(n, d));
+            currentProb.n = n / commonGCD;
+            currentProb.d = d / commonGCD;
             if(currentProb.d < 0) { currentProb.n *= -1; currentProb.d *= -1; }
-
             document.getElementById('problem-display').innerHTML = html + " = ";
         }
 
         function checkAnswer() {
             const un = parseInt(document.getElementById('in-n').value);
             const ud = parseInt(document.getElementById('in-d').value);
-
-            if (isNaN(un) || isNaN(ud)) return alert("정답을 입력하세요!");
+            if (isNaN(un) || isNaN(ud)) return alert("입력란을 채워주세요!");
 
             if (un === currentProb.n && ud === currentProb.d) {
-                score++; alert("정답! 대단해요. ✨");
+                sessionScore++; alert("정답! ✨");
             } else {
-                let ansStr = currentProb.d === 1 ? currentProb.n : currentProb.n + "/" + currentProb.d;
-                alert("오답입니다. 정답은 " + ansStr + " 입니다.");
+                alert("오답입니다. 정답: " + currentProb.n + (currentProb.d === 1 ? "" : "/" + currentProb.d));
             }
 
             if (currentIdx < 10) {
                 currentIdx++;
                 document.getElementById('step-txt').innerText = "문제 " + currentIdx + " / 10";
-                document.getElementById('score-txt').innerText = "맞은 개수: " + score;
                 document.getElementById('in-n').value = ""; document.getElementById('in-d').value = "1";
                 generateProblem();
             } else {
                 document.getElementById('quiz-ui').classList.add('hidden');
                 document.getElementById('result-ui').classList.remove('hidden');
-                document.getElementById('final-score').innerText = score;
+                document.getElementById('final-score').innerText = sessionScore;
             }
+        }
+
+        function saveAndNext() {
+            const name = document.getElementById('user-name').value || "무명학생";
+            const row = `<tr><td>${name}</td><td>${globalSet}</td><td>${sessionScore}점</td><td>${sessionScore*10}%</td></tr>`;
+            document.getElementById('stats-body').innerHTML += row;
+
+            // 리셋
+            globalSet++;
+            currentIdx = 1;
+            sessionScore = 0;
+            document.getElementById('user-name').value = "";
+            document.getElementById('step-txt').innerText = "문제 1 / 10";
+            document.getElementById('set-count-txt').innerText = "세트: " + globalSet;
+            document.getElementById('quiz-ui').classList.remove('hidden');
+            document.getElementById('result-ui').classList.add('hidden');
+            document.getElementById('in-n').value = ""; document.getElementById('in-d').value = "1";
+            generateProblem();
         }
 
         window.onload = generateProblem;
