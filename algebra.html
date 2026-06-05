@@ -4,12 +4,13 @@
     <meta charset="UTF-8">
     <title>일차식 계산 트레이닝</title>
     <style>
-        :root { --primary: #10b981; --bg: #f8fafc; }
+        :root { --primary: #10b981; --bg: #f8fafc; --error: #ef4444; }
         body { font-family: 'Malgun Gothic', sans-serif; background: var(--bg); display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
-        .container { background: white; padding: 30px; border-radius: 30px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); width: 100%; max-width: 600px; text-align: center; border-top: 10px solid var(--primary); }
+        .container { background: white; padding: 30px; border-radius: 30px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); width: 100%; max-width: 600px; text-align: center; border-top: 10px solid var(--primary); position: relative; }
         .header { display: flex; justify-content: space-between; margin-bottom: 25px; font-weight: bold; color: #065f46; }
         .problem-box { background: #f0fdf4; border-radius: 20px; padding: 45px 15px; margin-bottom: 30px; min-height: 150px; display: flex; align-items: center; justify-content: center; font-size: 2.4rem; font-weight: bold; color: #1e293b; line-height: 1.5; }
         
+        /* 분수 스타일 */
         .f-wrap { display: inline-flex; flex-direction: column; vertical-align: middle; align-items: center; line-height: 1.1; margin: 0 5px; font-size: 0.75em; }
         .f-num { border-bottom: 3px solid #1e293b; padding: 0 5px; }
         .f-den { padding: 0 5px; }
@@ -23,6 +24,10 @@
         .btn-main { background: var(--primary); color: white; border: none; padding: 18px; font-size: 1.4rem; font-weight: bold; border-radius: 15px; cursor: pointer; width: 100%; box-shadow: 0 4px 0 #059669; margin-top: 20px; }
         .btn-main:active { transform: translateY(3px); box-shadow: none; }
 
+        /* 커스텀 메시지창 (alert 대체) */
+        #msg-overlay { display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.95); border-radius: 30px; z-index: 10; flex-direction: column; justify-content: center; align-items: center; padding: 20px; box-sizing: border-box; }
+        #msg-content { font-size: 1.8rem; font-weight: bold; margin-bottom: 30px; line-height: 1.6; }
+
         .result-card { display: none; }
         .name-input { width: 80%; padding: 12px; border: 2px solid var(--primary); border-radius: 12px; font-size: 1.2rem; text-align: center; margin-bottom: 20px; outline: none; }
         .score-box { background: #dcfce7; padding: 30px; border-radius: 20px; margin: 20px 0; }
@@ -34,6 +39,11 @@
 <body>
 
     <div class="container">
+        <div id="msg-overlay">
+            <div id="msg-content"></div>
+            <button class="btn-main" style="width:200px;" onclick="closeMsg()">확인</button>
+        </div>
+
         <div id="quiz-ui">
             <div class="header">
                 <span id="q-count">문제 1 / 10</span>
@@ -89,61 +99,50 @@
             return [num, den];
         }
 
-        // 텍스트 전용 렌더링 (alert용)
-        function renderText(n, d, type, isFirst) {
-            if (n === 0) return "";
-            const [sn, sd] = simplify(n, d);
-            let absN = Math.abs(sn);
-            let sign = sn > 0 ? (isFirst ? "" : " + ") : (isFirst ? "-" : " - ");
-            let val = (sd === 1) ? (absN === 1 && type === 'x' ? "" : absN) : `${absN}/${sd}`;
-            return sign + val + (type === 'x' ? "x" : "");
-        }
-
-        // 화면 전용 렌더링 (HTML 태그 포함)
         function renderHTML(n, d, type, isFirst) {
             if (n === 0) return "";
             const [sn, sd] = simplify(n, d);
             let absN = Math.abs(sn);
             let sign = sn > 0 ? (isFirst ? "" : " + ") : (isFirst ? "-" : " - ");
-            
-            let valStr = "";
-            if (sd === 1) {
-                if (type === 'x') valStr = (absN === 1 ? "x" : absN + "x");
-                else valStr = absN;
-            } else {
-                valStr = `<div class="f-wrap"><div class="f-num">${absN}</div><div class="f-den">${sd}</div></div>` + (type === 'x' ? "x" : "");
-            }
+            let valStr = (sd === 1) ? (absN === 1 && type === 'x' ? "x" : absN + (type === 'x' ? "x" : "")) 
+                                    : `<div class="f-wrap"><div class="f-num">${absN}</div><div class="f-den">${sd}</div></div>` + (type === 'x' ? "x" : "");
             return sign + valStr;
         }
 
         function generate() {
-            let m = (Math.floor(Math.random() * 4) + 2) * (Math.random() > 0.5 ? 1 : -1);
-            let n = (Math.floor(Math.random() * 4) + 2) * (Math.random() > 0.5 ? 1 : -1);
-            
-            let aN = rand(1, 3), aD = rand(1, 3);
-            let bN = rand(-4, 4), bD = rand(1, 2); if(bN === 0) bN = 2;
-            let cN = rand(1, 3), cD = rand(1, 3);
-            let dN = rand(-4, 4), dD = rand(1, 2); if(dN === 0) dN = -2;
+            let m = (rand(2, 5)) * (Math.random() > 0.5 ? 1 : -1);
+            let n = (rand(2, 5)) * (Math.random() > 0.5 ? 1 : -1);
+            let aN = rand(1, 3), aD = rand(1, 3), bN = rand(-4, 4), bD = rand(1, 2); if(bN===0) bN=2;
+            let cN = rand(1, 3), cD = rand(1, 3), dN = rand(-4, 4), dD = rand(1, 2); if(dN===0) dN=-2;
 
-            const [saN, saD] = simplify(aN, aD);
-            const [sbN, sbD] = simplify(bN, bD);
-            const [scN, scD] = simplify(cN, cD);
-            const [sdN, sdD] = simplify(dN, dD);
+            const [saN, saD] = simplify(aN, aD); const [sbN, sbD] = simplify(bN, bD);
+            const [scN, scD] = simplify(cN, cD); const [sdN, sdD] = simplify(dN, dD);
 
-            let mStr = m === 1 ? "" : m === -1 ? "-" : m;
+            let mStr = m === 1 ? "" : (m === -1 ? "-" : m);
             let nSign = n > 0 ? " + " : " - ";
             let nVal = Math.abs(n) === 1 ? "" : Math.abs(n);
 
-            let term1 = renderHTML(saN, saD, 'x', true) + renderHTML(sbN, sbD, 'n', false);
-            let term2 = renderHTML(scN, scD, 'x', true) + renderHTML(sdN, sdD, 'n', false);
-
-            document.getElementById('display').innerHTML = `${mStr}(${term1})${nSign}${nVal}(${term2})`;
+            document.getElementById('display').innerHTML = `${mStr}(${renderHTML(saN, saD, 'x', true)}${renderHTML(sbN, sbD, 'n', false)})${nSign}${nVal}(${renderHTML(scN, scD, 'x', true)}${renderHTML(sdN, sdD, 'n', false)})`;
 
             [currentAns.aN, currentAns.aD] = simplify(m * saN * scD + n * scN * saD, saD * scD);
             [currentAns.bN, currentAns.bD] = simplify(m * sbN * sdD + n * sdN * sbD, sbD * sdD);
         }
 
         function rand(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+
+        function showMsg(html) {
+            document.getElementById('msg-content').innerHTML = html;
+            document.getElementById('msg-overlay').style.display = 'flex';
+        }
+
+        function closeMsg() {
+            document.getElementById('msg-overlay').style.display = 'none';
+            if (session.idx < 10) {
+                session.idx++;
+                document.getElementById('q-count').innerText = `문제 ${session.idx} / 10`;
+                clearInputs(); generate();
+            } else { showResult(); }
+        }
 
         function check() {
             const an = parseInt(document.getElementById('a-num').value);
@@ -157,19 +156,11 @@
             const [ubn, ubd] = simplify(bn, bd);
 
             if (uan === currentAns.aN && uad === currentAns.aD && ubn === currentAns.bN && ubd === currentAns.bD) {
-                session.score++; alert("정답입니다! ✨");
+                session.score++; showMsg("<span style='color:var(--primary)'>정답입니다! ✨</span>");
             } else {
-                // 오답 시 텍스트 전용 함수 사용
-                let showA = renderText(currentAns.aN, currentAns.aD, 'x', true);
-                let showB = renderText(currentAns.bN, currentAns.bD, 'n', false);
-                alert(`오답! 정답은 [ ${showA}${showB} ] 입니다.`);
+                let ansH = renderHTML(currentAns.aN, currentAns.aD, 'x', true) + renderHTML(currentAns.bN, currentAns.bD, 'n', false);
+                showMsg(`<span style='color:var(--error)'>오답입니다!</span><br><br>정답: [ ${ansH} ]`);
             }
-
-            if (session.idx < 10) {
-                session.idx++;
-                document.getElementById('q-count').innerText = `문제 ${session.idx} / 10`;
-                clearInputs(); generate();
-            } else { showResult(); }
         }
 
         function clearInputs() {
