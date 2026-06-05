@@ -10,6 +10,7 @@
         .header { display: flex; justify-content: space-between; margin-bottom: 25px; font-weight: bold; color: #065f46; }
         .problem-box { background: #f0fdf4; border-radius: 20px; padding: 45px 15px; margin-bottom: 30px; min-height: 150px; display: flex; align-items: center; justify-content: center; font-size: 2.6rem; font-weight: bold; color: #1e293b; line-height: 1.5; }
         
+        /* 분수 스타일 */
         .f-wrap { display: inline-flex; flex-direction: column; vertical-align: middle; align-items: center; line-height: 1.1; margin: 0 5px; font-size: 0.75em; }
         .f-num { border-bottom: 3px solid #1e293b; padding: 0 5px; }
         .f-den { padding: 0 5px; }
@@ -23,8 +24,13 @@
         .btn-main { background: var(--primary); color: white; border: none; padding: 18px; font-size: 1.4rem; font-weight: bold; border-radius: 15px; cursor: pointer; width: 100%; box-shadow: 0 4px 0 #059669; margin-top: 20px; }
         .btn-main:active { transform: translateY(3px); box-shadow: none; }
 
+        /* 결과창 */
         .result-card { display: none; }
+        .name-input { width: 80%; padding: 12px; border: 2px solid var(--primary); border-radius: 12px; font-size: 1.2rem; text-align: center; margin-bottom: 20px; outline: none; }
         .score-box { background: #dcfce7; padding: 30px; border-radius: 20px; margin: 20px 0; }
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+        .stat-item { background: #f0fdf4; padding: 15px; border-radius: 12px; font-size: 0.9rem; color: #065f46; }
+        .stat-val { font-size: 1.5rem; font-weight: bold; display: block; margin-top: 5px; }
     </style>
 </head>
 <body>
@@ -57,14 +63,22 @@
 
         <div id="result-ui" class="result-card">
             <h2 style="color:#065f46;">학습 결과 통계 📊</h2>
+            <input type="text" class="name-input" placeholder="학생 이름을 입력하세요" id="student-name">
             <div class="score-box">
+                <div style="font-weight:bold; color:#065f46; margin-bottom:10px;">이번 세트 점수</div>
                 <div style="font-size:4rem; font-weight:900;" id="set-score">0 / 10</div>
             </div>
-            <button class="btn-main" onclick="location.reload()">다시 시작하기</button>
+            <div class="stats-grid">
+                <div class="stat-item">총 세트<span class="stat-val" id="total-sets">0</span></div>
+                <div class="stat-item">총 정답<span class="stat-val" id="total-correct">0</span></div>
+                <div class="stat-item">정답률<span class="stat-val" id="total-rate">0%</span></div>
+            </div>
+            <button class="btn-main" onclick="startNewSet()">다음 세트 계속하기</button>
         </div>
     </div>
 
     <script>
+        let global = { sets: 0, correct: 0 };
         let session = { idx: 1, score: 0 };
         let currentAns = { aN: 0, aD: 1, bN: 0, bD: 1 };
 
@@ -77,7 +91,6 @@
             return [num, den];
         }
 
-        // 수식 렌더링 함수: 1과 -1을 완벽하게 처리
         function renderTerm(n, d, type, isFirst) {
             if (n === 0) return "";
             const [sn, sd] = simplify(n, d);
@@ -86,11 +99,8 @@
             
             let valStr = "";
             if (sd === 1) {
-                if (type === 'x') {
-                    valStr = (absN === 1 ? "x" : absN + "x");
-                } else {
-                    valStr = absN;
-                }
+                if (type === 'x') valStr = (absN === 1 ? "x" : absN + "x");
+                else valStr = absN;
             } else {
                 valStr = `<div class="f-wrap"><div class="f-num">${absN}</div><div class="f-den">${sd}</div></div>` + (type === 'x' ? "x" : "");
             }
@@ -140,7 +150,6 @@
             if (uan === currentAns.aN && uad === currentAns.aD && ubn === currentAns.bN && ubd === currentAns.bD) {
                 session.score++; alert("정답입니다! ✨");
             } else {
-                // 오답 메시지에서도 1 생략 적용
                 let showA = renderTerm(currentAns.aN, currentAns.aD, 'x', true);
                 let showB = renderTerm(currentAns.bN, currentAns.bD, 'n', false);
                 alert(`오답! 정답은 [ ${showA}${showB} ] 입니다.`);
@@ -150,16 +159,30 @@
                 session.idx++;
                 document.getElementById('q-count').innerText = `문제 ${session.idx} / 10`;
                 clearInputs(); generate();
-            } else {
-                document.getElementById('quiz-ui').style.display = 'none';
-                document.getElementById('result-ui').style.display = 'block';
-                document.getElementById('set-score').innerText = `${session.score} / 10`;
-            }
+            } else { showResult(); }
         }
 
         function clearInputs() {
             document.getElementById('a-num').value = ""; document.getElementById('a-den').value = "1";
             document.getElementById('b-num').value = ""; document.getElementById('b-den').value = "1";
+        }
+
+        function showResult() {
+            global.sets++; global.correct += session.score;
+            document.getElementById('quiz-ui').style.display = 'none';
+            document.getElementById('result-ui').style.display = 'block';
+            document.getElementById('set-score').innerText = `${session.score} / 10`;
+            document.getElementById('total-sets').innerText = global.sets;
+            document.getElementById('total-correct').innerText = global.correct;
+            document.getElementById('total-rate').innerText = Math.round((global.correct / (global.sets * 10)) * 100) + "%";
+        }
+
+        function startNewSet() {
+            session.idx = 1; session.score = 0;
+            document.getElementById('quiz-ui').style.display = 'block';
+            document.getElementById('result-ui').style.display = 'none';
+            document.getElementById('q-count').innerText = "문제 1 / 10";
+            clearInputs(); generate();
         }
 
         window.onload = generate;
