@@ -2,35 +2,36 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>일차식 계산 트레이닝</title>
+    <title>일차식 계산 - 분수 정답 지원</title>
     <style>
         :root { --primary: #10b981; --bg: #f8fafc; }
         body { font-family: 'Malgun Gothic', sans-serif; background: var(--bg); display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
-        .container { background: white; padding: 30px; border-radius: 30px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); width: 100%; max-width: 550px; text-align: center; border-top: 10px solid var(--primary); }
+        .container { background: white; padding: 30px; border-radius: 30px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); width: 100%; max-width: 580px; text-align: center; border-top: 10px solid var(--primary); }
         
         .header { display: flex; justify-content: space-between; margin-bottom: 25px; font-weight: bold; color: #065f46; }
-        .problem-box { background: #f0fdf4; border-radius: 20px; padding: 50px 20px; margin-bottom: 30px; min-height: 160px; display: flex; align-items: center; justify-content: center; font-size: 2.8rem; font-weight: bold; color: #1e293b; }
+        .problem-box { background: #f0fdf4; border-radius: 20px; padding: 40px 10px; margin-bottom: 30px; min-height: 140px; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; font-weight: bold; color: #1e293b; }
         
-        /* 분수 디자인 */
-        .f-wrap { display: inline-flex; flex-direction: column; vertical-align: middle; align-items: center; line-height: 1.1; margin: 0 10px; font-size: 0.8em; }
-        .f-num { border-bottom: 3px solid #1e293b; padding: 0 5px; }
+        /* 수식 내 분수 스타일 */
+        .f-wrap { display: inline-flex; flex-direction: column; vertical-align: middle; align-items: center; line-height: 1; margin: 0 8px; font-size: 0.75em; }
+        .f-num { border-bottom: 3px solid #1e293b; padding: 0 5px; margin-bottom: 2px; }
         .f-den { padding: 0 5px; }
 
-        .answer-zone { background: #f9fafb; padding: 30px; border-radius: 20px; border: 1px solid #e2e8f0; }
-        .input-row { display: flex; align-items: center; justify-content: center; gap: 15px; font-size: 2.2rem; margin-bottom: 20px; }
-        input[type="number"] { width: 110px; text-align: center; font-size: 1.8rem; padding: 12px; border: 2px solid #cbd5e1; border-radius: 12px; outline: none; }
-        
-        .btn-main { background: var(--primary); color: white; border: none; padding: 20px; font-size: 1.5rem; font-weight: bold; border-radius: 15px; cursor: pointer; width: 100%; box-shadow: 0 4px 0 #059669; }
+        /* 입력 영역 스타일 */
+        .answer-zone { background: #f9fafb; padding: 25px; border-radius: 20px; border: 1px solid #e2e8f0; }
+        .ans-unit { display: inline-flex; flex-direction: column; align-items: center; vertical-align: middle; }
+        .ans-input { width: 70px; text-align: center; font-size: 1.3rem; padding: 8px; border: 2px solid #cbd5e1; border-radius: 10px; outline: none; }
+        .ans-line { width: 100%; border-bottom: 2px solid #1e293b; margin: 4px 0; }
+        .input-group { display: inline-flex; align-items: center; gap: 8px; font-size: 1.8rem; font-weight: bold; }
+
+        .btn-main { background: var(--primary); color: white; border: none; padding: 18px; font-size: 1.4rem; font-weight: bold; border-radius: 15px; cursor: pointer; width: 100%; box-shadow: 0 4px 0 #059669; margin-top: 20px; }
         .btn-main:active { transform: translateY(3px); box-shadow: none; }
 
-        /* 결과 창 (이미지 디자인 반영) */
+        /* 결과창 (요청 디자인 반영) */
         .result-card { display: none; }
-        .name-box { border: 2px solid var(--primary); border-radius: 12px; padding: 10px; margin-bottom: 20px; color: #94a3b8; font-size: 1.2rem; }
-        .score-box { background: #dcfce7; padding: 30px; border-radius: 20px; margin-bottom: 20px; }
+        .score-box { background: #dcfce7; padding: 30px; border-radius: 20px; margin: 20px 0; }
         .stats-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 20px; }
         .stat-item { background: #f0fdf4; padding: 15px; border-radius: 12px; }
-        .stat-label { font-size: 0.85rem; color: #065f46; font-weight: bold; margin-bottom: 5px; }
-        .stat-val { font-size: 1.5rem; font-weight: bold; }
+        .hidden { display: none; }
     </style>
 </head>
 <body>
@@ -39,30 +40,40 @@
         <div id="quiz-ui">
             <div class="header">
                 <span id="q-count">문제 1 / 10</span>
-                <span>일차식 계산</span>
+                <span>일차식 트레이닝</span>
             </div>
             <div class="problem-box" id="display">생성 중...</div>
+            
             <div class="answer-zone">
-                <div class="input-row">
-                    <input type="number" id="ans-a" placeholder="계수">
+                <div class="input-group">
+                    <div class="ans-unit">
+                        <input type="number" id="a-num" class="ans-input" placeholder="분자">
+                        <div class="ans-line"></div>
+                        <input type="number" id="a-den" class="ans-input" value="1">
+                    </div>
                     <span>x + </span>
-                    <input type="number" id="ans-b" placeholder="상수">
+                    <div class="ans-unit">
+                        <input type="number" id="b-num" class="ans-input" placeholder="분자">
+                        <div class="ans-line"></div>
+                        <input type="number" id="b-den" class="ans-input" value="1">
+                    </div>
                 </div>
                 <button class="btn-main" onclick="check()">확인</button>
             </div>
+            <p style="font-size: 0.9rem; color: #64748b; margin-top: 15px;">* 정수는 분모에 1을 입력하세요.</p>
         </div>
 
         <div id="result-ui" class="result-card">
             <h2 style="color:#065f46;">학습 결과 통계 📊</h2>
-            <div class="name-box">학생 이름</div>
+            <div style="border: 2px solid var(--primary); border-radius: 12px; padding: 10px; margin-bottom: 20px; color: #94a3b8;">학생 이름</div>
             <div class="score-box">
-                <div style="color:#065f46; font-weight:bold; margin-bottom:10px;">이번 세트 점수</div>
+                <div style="font-weight:bold; color:#065f46; margin-bottom:10px;">이번 세트 점수</div>
                 <div style="font-size:4rem; font-weight:900;" id="set-score">0 / 10</div>
             </div>
             <div class="stats-grid">
-                <div class="stat-item"><div class="stat-label">총 세트</div><div class="stat-val" id="total-sets">0</div></div>
-                <div class="stat-item"><div class="stat-label">총 정답</div><div class="stat-val" id="total-correct">0</div></div>
-                <div class="stat-item"><div class="stat-label">정답률</div><div class="stat-val" id="total-rate">0%</div></div>
+                <div class="stat-item"><div>총 세트</div><div style="font-weight:bold;" id="total-sets">0</div></div>
+                <div class="stat-item"><div>총 정답</div><div style="font-weight:bold;" id="total-correct">0</div></div>
+                <div class="stat-item"><div>정답률</div><div style="font-weight:bold;" id="total-rate">0%</div></div>
             </div>
             <button class="btn-main" onclick="startNewSet()">다음 세트 계속하기</button>
         </div>
@@ -71,74 +82,95 @@
     <script>
         let global = { sets: 0, correct: 0 };
         let session = { idx: 1, score: 0 };
-        let currentAns = { a: 0, b: 0 };
+        let currentAns = { aN: 0, aD: 1, bN: 0, bD: 1 };
 
-        function rand(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+        function gcd(a, b) { return b === 0 ? Math.abs(a) : gcd(b, a % b); }
 
-        function fmtX(n, isFirst = false) {
-            if (n === 0) return "";
-            let sign = n > 0 ? (isFirst ? "" : " + ") : (isFirst ? "-" : " - ");
-            let val = Math.abs(n) === 1 ? "x" : Math.abs(n) + "x";
-            return sign + val;
+        function simplify(n, d) {
+            const common = gcd(n, d);
+            let num = n / common;
+            let den = d / common;
+            if (den < 0) { num = -num; den = -den; }
+            return [num, den];
         }
 
-        function fmtNum(n, isFirst = false) {
+        function getFractionHtml(n, d) {
+            const [sn, sd] = simplify(n, d);
+            if (sd === 1) return sn;
+            return `<div class="f-wrap"><div class="f-num">${sn}</div><div class="f-den">${sd}</div></div>`;
+        }
+
+        function fmtX(n, d, isFirst = false) {
+            if (n === 0) return "";
+            let sign = n > 0 ? (isFirst ? "" : " + ") : (isFirst ? "-" : " - ");
+            const [sn, sd] = simplify(Math.abs(n), d);
+            if (sd === 1) return sign + (sn === 1 ? "x" : sn + "x");
+            return sign + `<div class="f-wrap"><div class="f-num">${sn}</div><div class="f-den">${sd}</div></div>x`;
+        }
+
+        function fmtNum(n, d, isFirst = false) {
             if (n === 0) return "";
             let sign = n > 0 ? (isFirst ? "" : " + ") : (isFirst ? " - " : " - ");
-            return sign + Math.abs(n);
+            const [sn, sd] = simplify(Math.abs(n), d);
+            if (sd === 1) return sign + sn;
+            return sign + `<div class="f-wrap"><div class="f-num">${sn}</div><div class="f-den">${sd}</div></div>`;
         }
 
         function generate() {
-            let type = rand(1, 3);
-            let html = "";
-
-            if (type === 1) { // 괄호 분배: a(bx + c) + dx
-                let a = rand(-5, 5); if(Math.abs(a) <= 1) a = 2; // 1 생략 문제 방지
-                let b = rand(1, 4);
-                let c = rand(-9, 9);
-                let d = rand(-5, 5) || 1;
-                html = `${a}(${b===1?'x':b+'x'} ${fmtNum(c)}) ${fmtX(d)}`;
-                currentAns.a = (a * b) + d;
-                currentAns.b = a * c;
-            } 
-            else if (type === 2) { // ★분수 문제★: n/d(mx + k)
-                let den = rand(2, 6);
-                let num = rand(1, den - 1);
-                let m = den * rand(1, 3);
-                let k = den * rand(-2, 2) || den;
-                html = `<div class="f-wrap"><div class="f-num">${num}</div><div class="f-den">${den}</div></div>(${m}x ${fmtNum(k)})`;
-                currentAns.a = (num / den) * m;
-                currentAns.b = (num / den) * k;
+            let type = rand(1, 2);
+            if (type === 1) { // 정수 분배: a( (n/d)x + k/m )
+                let a = rand(2, 5) * (rand(0, 1) ? 1 : -1);
+                let n = rand(1, 3), d = rand(2, 4);
+                let k = rand(-3, 3), m = rand(1, 3);
+                
+                let [sn, sd] = simplify(n, d);
+                let [sk, sm] = simplify(k, m);
+                
+                document.getElementById('display').innerHTML = `${a}(${fmtX(sn, sd, true)}${fmtNum(sk, sm)})`;
+                [currentAns.aN, currentAns.aD] = simplify(a * sn, sd);
+                [currentAns.bN, currentAns.bD] = simplify(a * sk, sm);
+            } else { // 분수 덧셈: (n/d)x + (k/m)x + 상수
+                let n = rand(1, 3), d = rand(2, 5);
+                let k = rand(-3, 3), m = rand(2, 5);
+                let c = rand(-5, 5);
+                
+                document.getElementById('display').innerHTML = `${fmtX(n, d, true)} ${fmtX(k, m)} ${fmtNum(c)}`;
+                [currentAns.aN, currentAns.aD] = simplify(n * m + k * d, d * m);
+                [currentAns.bN, currentAns.bD] = [c, 1];
             }
-            else { // 다항식 결합: ax + b + cx + d
-                let a = rand(-9, 9) || 3;
-                let b = rand(-9, 9);
-                let c = rand(-9, 9) || -4;
-                let d = rand(-9, 9);
-                html = `${fmtX(a, true)} ${fmtNum(b)} ${fmtX(c)} ${fmtNum(d)}`;
-                currentAns.a = a + c;
-                currentAns.b = b + d;
-            }
-            document.getElementById('display').innerHTML = html;
         }
 
-        function check() {
-            const ua = parseInt(document.getElementById('ans-a').value);
-            const ub = parseInt(document.getElementById('ans-b').value);
-            if(isNaN(ua) || isNaN(ub)) return;
+        function rand(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
 
-            if(ua === currentAns.a && ub === currentAns.b) {
-                session.score++; alert("정답입니다! ✨");
+        function check() {
+            const an = parseInt(document.getElementById('a-num').value);
+            const ad = parseInt(document.getElementById('a-den').value) || 1;
+            const bn = parseInt(document.getElementById('b-num').value);
+            const bd = parseInt(document.getElementById('b-den').value) || 1;
+
+            if (isNaN(an) || isNaN(bn)) return alert("분자를 입력하세요!");
+
+            const [uan, uad] = simplify(an, ad);
+            const [ubn, ubd] = simplify(bn, bd);
+
+            if (uan === currentAns.aN && uad === currentAns.aD && ubn === currentAns.bN && ubd === currentAns.bD) {
+                session.score++; alert("정답입니다! 👏");
             } else {
-                alert(`오답! 정답은 ${currentAns.a}x ${currentAns.b >= 0 ? '+ ' + currentAns.b : '- ' + Math.abs(currentAns.b)}`);
+                let solA = currentAns.aD === 1 ? currentAns.aN : `${currentAns.aN}/${currentAns.aD}`;
+                let solB = currentAns.bD === 1 ? currentAns.bN : `${currentAns.bN}/${currentAns.bD}`;
+                alert(`오답! 정답은 계수: ${solA}, 상수: ${solB} 입니다.`);
             }
 
-            if(session.idx < 10) {
+            if (session.idx < 10) {
                 session.idx++;
                 document.getElementById('q-count').innerText = `문제 ${session.idx} / 10`;
-                document.getElementById('ans-a').value = ""; document.getElementById('ans-b').value = "";
-                generate();
+                clearInputs(); generate();
             } else { showResult(); }
+        }
+
+        function clearInputs() {
+            document.getElementById('a-num').value = ""; document.getElementById('a-den').value = "1";
+            document.getElementById('b-num').value = ""; document.getElementById('b-den').value = "1";
         }
 
         function showResult() {
@@ -156,8 +188,7 @@
             document.getElementById('quiz-ui').style.display = 'block';
             document.getElementById('result-ui').style.display = 'none';
             document.getElementById('q-count').innerText = "문제 1 / 10";
-            document.getElementById('ans-a').value = ""; document.getElementById('ans-b').value = "";
-            generate();
+            clearInputs(); generate();
         }
 
         window.onload = generate;
