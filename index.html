@@ -2,36 +2,34 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>일차식 계산 통계 마스터</title>
+    <title>유리수 혼합계산 챌린지</title>
     <style>
-        body { font-family: 'Malgun Gothic', sans-serif; background: #f0fdf4; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; }
-        .container { background: white; padding: 30px; border-radius: 30px; box-shadow: 0 15px 35px rgba(0,0,0,0.1); width: 100%; max-width: 650px; text-align: center; border-top: 10px solid #22c55e; }
-        .header { display: flex; justify-content: space-between; margin-bottom: 25px; font-weight: bold; color: #166534; }
+        /* 외부 라이브러리 없이 표준 CSS만 사용 */
+        body { font-family: sans-serif; background-color: #f0f4f8; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        .container { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 100%; max-width: 500px; text-align: center; border-top: 10px solid #2563eb; }
+        .header { display: flex; justify-content: space-between; margin-bottom: 20px; font-weight: bold; color: #475569; }
+        .problem-box { background: #f8fafc; border: 2px dashed #cbd5e1; border-radius: 15px; padding: 40px 20px; margin-bottom: 30px; min-height: 150px; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; font-weight: bold; flex-wrap: wrap; }
         
-        /* 문제 영역 전용 스타일 */
-        .problem-box { background: #f0fdf4; border: 2px solid #bbf7d0; border-radius: 20px; padding: 40px 20px; margin-bottom: 30px; min-height: 160px; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; font-weight: bold; color: #1e293b; flex-wrap: wrap; }
-        
-        /* 분수 스타일 강제 지정 */
-        .f-wrap { display: inline-flex; flex-direction: column; vertical-align: middle; align-items: center; line-height: 1; margin: 0 8px; font-size: 0.9em; }
-        .f-num { border-bottom: 3px solid #1e293b; padding: 0 6px; margin-bottom: 2px; }
-        .f-den { padding: 0 6px; }
+        /* 분수 디자인 */
+        .frac { display: inline-flex; flex-direction: column; vertical-align: middle; align-items: center; margin: 0 5px; font-size: 0.8em; }
+        .num { border-bottom: 2px solid black; padding: 0 5px; }
+        .den { padding: 0 5px; }
+        .op { margin: 0 10px; color: #dc2626; }
+        .sup { font-size: 0.6em; vertical-align: super; color: #2563eb; }
 
-        .answer-zone { background: #f9fafb; padding: 25px; border-radius: 20px; border: 1px solid #e5e7eb; }
-        .input-row { display: flex; align-items: center; justify-content: center; gap: 15px; font-size: 1.8rem; margin: 20px 0; }
+        /* 입력창 디자인 */
+        .input-group { background: #eff6ff; padding: 20px; border-radius: 15px; display: flex; align-items: center; justify-content: center; gap: 20px; }
+        .fraction-input { display: flex; flex-direction: column; align-items: center; }
+        input { width: 80px; text-align: center; font-size: 1.5rem; padding: 10px; border: 2px solid #bfdbfe; border-radius: 10px; outline: none; }
+        input:focus { border-color: #2563eb; }
+        .line { width: 100%; height: 2px; background: #1e293b; margin: 8px 0; }
+        button { background: #2563eb; color: white; border: none; padding: 20px 40px; font-size: 1.5rem; font-weight: bold; border-radius: 15px; cursor: pointer; transition: 0.2s; }
+        button:active { transform: scale(0.95); }
         
-        .fraction-input { display: flex; flex-direction: column; align-items: center; background: white; padding: 10px; border-radius: 12px; border: 2px solid #cbd5e1; }
-        input { width: 75px; text-align: center; font-size: 1.8rem; border: none; outline: none; background: transparent; }
-        .line-sep { width: 65px; height: 3px; background: #1e293b; margin: 8px 0; }
-        
-        .btn-main { background: #22c55e; color: white; border: none; padding: 20px; font-size: 1.5rem; font-weight: bold; border-radius: 15px; cursor: pointer; width: 100%; transition: 0.2s; box-shadow: 0 4px 0 #16a34a; }
-        .btn-main:active { transform: translateY(3px); box-shadow: none; }
-
-        .stats-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin: 20px 0; }
-        .stat-item { background: #f8fafc; padding: 15px; border-radius: 15px; border: 1px solid #e2e8f0; }
-        .stat-label { font-size: 0.9rem; color: #64748b; margin-bottom: 5px; }
-        .stat-value { font-size: 1.6rem; font-weight: bold; }
-        
+        /* 결과 화면 */
         .hidden { display: none; }
+        .result-card { background: #2563eb; color: white; padding: 40px; border-radius: 30px; margin-bottom: 20px; }
+        .score-big { font-size: 8rem; margin: 20px 0; font-weight: 900; }
     </style>
 </head>
 <body>
@@ -39,123 +37,89 @@
     <div class="container">
         <div id="quiz-ui">
             <div class="header">
-                <span id="q-count">문제 1 / 10</span>
-                <span id="session-info" style="color:#22c55e">세트: 1</span>
+                <span id="step-txt">문제 1 / 10</span>
+                <span id="score-txt">맞은 개수: 0</span>
             </div>
-            <div class="problem-box" id="display">
+            <div class="problem-box" id="problem-display">
+                로딩 중...
+            </div>
+            <div class="input-group">
+                <div class="fraction-input">
+                    <input type="number" id="in-n" placeholder="분자">
+                    <div class="line"></div>
+                    <input type="number" id="in-d" placeholder="분모">
                 </div>
-            
-            <div class="answer-zone">
-                <p style="color:#166534; font-weight:bold; margin-bottom: 10px;">정답 입력 (기약분수)</p>
-                <div class="input-row">
-                    <div class="fraction-input">
-                        <input type="number" id="a-n" placeholder="분자">
-                        <div class="line-sep"></div>
-                        <input type="number" id="a-d" value="1">
-                    </div>
-                    <span>x + </span>
-                    <div class="fraction-input">
-                        <input type="number" id="b-n" placeholder="분자">
-                        <div class="line-sep"></div>
-                        <input type="number" id="b-d" value="1">
-                    </div>
-                </div>
-                <button class="btn-main" onclick="check()">정답 확인</button>
+                <button onclick="checkAnswer()">확인</button>
             </div>
         </div>
 
         <div id="result-ui" class="hidden">
-            <h1 style="color:#166534; margin-bottom:10px;">세트 종료! 🎉</h1>
-            <input type="text" id="user-name" placeholder="학생 이름을 입력하세요" style="width:80%; font-size:1.5rem; padding:12px; margin-bottom:25px; text-align:center; border-radius:15px; border:3px solid #22c55e; outline:none;">
-            
-            <div class="stat-item" style="background:#dcfce7; border:none; margin-bottom:20px; padding: 25px;">
-                <div class="stat-label" style="font-size: 1.1rem;">이번 세트 점수</div>
-                <div class="stat-value" style="font-size:4rem; color: #166534;" id="set-score">0 / 10</div>
+            <h1>학습 완료! 🎉</h1>
+            <div class="result-card">
+                <div id="final-score" class="score-big">0</div>
+                <input type="text" id="user-name" placeholder="이름을 입력하세요" style="width:80%; font-size:1.2rem;">
             </div>
-
-            <h3 style="text-align:left; color:#475569; margin-left:5px;">📊 전체 누적 통계</h3>
-            <div class="stats-grid">
-                <div class="stat-item"><div class="stat-label">총 세트</div><div class="stat-value" id="total-sets">0</div></div>
-                <div class="stat-item"><div class="stat-label">총 정답</div><div class="stat-value" id="total-correct">0</div></div>
-                <div class="stat-item"><div class="stat-label">총 정답률</div><div class="stat-value" id="total-rate" style="color:#22c55e;">0%</div></div>
-            </div>
-
-            <button class="btn-main" onclick="startNewSet()">다음 세트 계속하기</button>
-            <button onclick="window.print()" style="margin-top:20px; background:none; border:none; color:#64748b; text-decoration:underline; cursor:pointer; font-weight:bold;">기록 저장 및 인쇄</button>
+            <button onclick="window.print()" style="background:#059669; width:100%;">리포트 저장/인쇄</button>
+            <p onclick="location.reload()" style="margin-top:20px; color:#64748b; cursor:pointer; text-decoration:underline;">다시 풀기</p>
         </div>
     </div>
 
     <script>
-        let global = { sets: 0, correct: 0, totalProblems: 0 };
-        let session = { idx: 1, score: 0 };
-        let cur;
-
-        // 분수 출력을 위한 헬퍼 함수
-        function makeFrac(n, d) {
-            return `<div class="f-wrap"><div class="f-num">${n}</div><div class="f-den">${d}</div></div>`;
-        }
-
+        // 고난도 문제 데이터 세트 (학습지 7~10번 유형)
         const problems = [
-            { h: `${makeFrac(1, 2)}(4x - 6) + 3x`, an: 5, ad: 1, bn: -3, bd: 1 },
-            { h: `2(x + ${makeFrac(1, 2)}) - ${makeFrac(1, 3)}(3x + 9)`, an: 1, ad: 1, bn: -2, bd: 1 },
-            { h: `${makeFrac(2, 3)}x + ${makeFrac(1, 6)}x`, an: 5, ad: 6, bn: 0, bd: 1 },
-            { h: `${makeFrac('x+1', 2)} + ${makeFrac('x-1', 3)}`, an: 5, ad: 6, bn: 1, bd: 6 },
-            { h: `${makeFrac(3, 4)}(8x - 4) - 2x`, an: 4, ad: 1, bn: -3, bd: 1 },
-            { h: `-(x - ${makeFrac(2, 5)}) + ${makeFrac(1, 2)}x`, an: -1, ad: 2, bn: 2, bd: 5 },
-            { h: `${makeFrac(1, 4)}(4x + 8) - ${makeFrac(1, 2)}x`, an: 1, ad: 2, bn: 2, bd: 1 },
-            { h: `3(${makeFrac(1, 3)}x - 2) + 5`, an: 1, ad: 1, bn: -1, bd: 1 },
-            { h: `${makeFrac('2x', 5)} - ${makeFrac('x', 2)}`, an: -1, ad: 10, bn: 0, bd: 1 },
-            { h: `${makeFrac(3, 2)}x + ${makeFrac(1, 4)} - x`, an: 1, ad: 2, bn: 1, bd: 4 }
+            { h: `(-2) <span class="op">×</span> <div class="frac"><div class="num">3</div><div class="den">4</div></div> <span class="op">÷</span> <div class="frac"><div class="num">1</div><div class="den">2</div></div>`, n: -3, d: 1 },
+            { h: `14 <span class="op">×</span> { <div class="frac"><div class="num">-3</div><div class="den">2</div></div> <span class="op">+</span> <div class="frac"><div class="num">2</div><div class="den">7</div></div> }`, n: -17, d: 1 },
+            { h: `9 <span class="op">-</span> { 5 <span class="op">+</span> (-2)<span class="sup">3</span> } <span class="op">×</span> (-7)`, n: -12, d: 1 },
+            { h: `(-2)<span class="sup">3</span> <span class="op">×</span> <div class="frac"><div class="num">5</div><div class="den">8</div></div> <span class="op">÷</span> <div class="frac"><div class="num">-5</div><div class="den">6</div></div>`, n: 6, d: 1 },
+            { h: `(-3)<span class="sup">2</span> <span class="op">-</span> { 10 <span class="op">+</span> (-2) <span class="op">×</span> 3 }`, n: 5, d: 1 },
+            { h: `(-1)<span class="sup">100</span> <span class="op">+</span> (-1)<span class="sup">101</span> <span class="op">×</span> 5`, n: -4, d: 1 },
+            { h: `{ 1 <span class="op">-</span> <div class="frac"><div class="num">2</div><div class="den">3</div></div> } <span class="op">÷</span> <div class="frac"><div class="num">5</div><div class="den">6</div></div>`, n: 2, d: 5 },
+            { h: `(-5) <span class="op">×</span> <div class="frac"><div class="num">1</div><div class="den">10</div></div> <span class="op">-</span> (-2)`, n: 3, d: 2 },
+            { h: `8 <span class="op">×</span> <div class="frac"><div class="num">-3</div><div class="den">4</div></div> <span class="op">÷</span> (-6)`, n: 1, d: 1 },
+            { h: `(-4) <span class="op">+</span> (+7) <span class="op">-</span> (+10)`, n: -7, d: 1 }
         ];
 
-        function load() {
-            cur = problems[Math.floor(Math.random() * problems.length)];
-            document.getElementById('display').innerHTML = cur.h;
+        let currentIdx = 1;
+        let score = 0;
+        let currentProb;
+
+        function showProblem() {
+            currentProb = problems[Math.floor(Math.random() * problems.length)];
+            document.getElementById('problem-display').innerHTML = currentProb.h + " = ";
         }
 
-        function check() {
-            const an = parseInt(document.getElementById('a-n').value);
-            const ad = parseInt(document.getElementById('a-d').value);
-            const bn = parseInt(document.getElementById('b-n').value);
-            const bd = parseInt(document.getElementById('b-d').value);
+        function checkAnswer() {
+            const un = parseInt(document.getElementById('in-n').value);
+            const ud = parseInt(document.getElementById('in-d').value);
 
-            if([an, ad, bn, bd].some(isNaN)) return alert("정답 칸을 모두 채워주세요!");
-
-            if(an === cur.an && ad === cur.ad && bn === cur.bn && bd === cur.bd) {
-                session.score++; alert("정답입니다! 🌟");
-            } else {
-                alert(`오답입니다! 정답은 (${cur.an}/${cur.ad})x + (${cur.bn}/${cur.bd})`);
+            if (isNaN(un) || isNaN(ud)) {
+                alert("분자와 분모를 모두 입력해 주세요!");
+                return;
             }
 
-            if(session.idx < 10) {
-                session.idx++;
-                document.getElementById('q-count').innerText = `문제 ${session.idx} / 10`;
-                ['a-n','b-n'].forEach(id => document.getElementById(id).value = "");
-                ['a-d','b-d'].forEach(id => document.getElementById(id).value = "1");
-                load();
-            } else { showResult(); }
+            if (un === currentProb.n && ud === currentProb.d) {
+                score++;
+                alert("정답입니다! 😊");
+            } else {
+                alert("아쉬워요! 정답은 " + currentProb.n + (currentProb.d === 1 ? "" : "/" + currentProb.d) + " 입니다.");
+            }
+
+            if (currentIdx < 10) {
+                currentIdx++;
+                document.getElementById('step-txt').innerText = "문제 " + currentIdx + " / 10";
+                document.getElementById('score-txt').innerText = "맞은 개수: " + score;
+                document.getElementById('in-n').value = "";
+                document.getElementById('in-d').value = "";
+                showProblem();
+            } else {
+                document.getElementById('quiz-ui').classList.add('hidden');
+                document.getElementById('result-ui').classList.remove('hidden');
+                document.getElementById('final-score').innerText = score;
+            }
         }
 
-        function showResult() {
-            global.sets++; global.correct += session.score; global.totalProblems += 10;
-            document.getElementById('quiz-ui').classList.add('hidden');
-            document.getElementById('result-ui').classList.remove('hidden');
-            document.getElementById('set-score').innerText = `${session.score} / 10`;
-            document.getElementById('total-sets').innerText = global.sets;
-            document.getElementById('total-correct').innerText = global.correct;
-            document.getElementById('total-rate').innerText = Math.round((global.correct / global.totalProblems) * 100) + "%";
-        }
-
-        function startNewSet() {
-            session = { idx: 1, score: 0 };
-            document.getElementById('q-count').innerText = "문제 1 / 10";
-            document.getElementById('session-info').innerText = `세트: ${global.sets + 1}`;
-            document.getElementById('quiz-ui').classList.remove('hidden');
-            document.getElementById('result-ui').classList.add('hidden');
-            load();
-        }
-
-        window.onload = load;
+        // 시작
+        window.onload = showProblem;
     </script>
 </body>
 </html>
